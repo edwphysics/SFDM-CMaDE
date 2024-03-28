@@ -158,9 +158,9 @@ class DarkM:
                          x12,   
                          3.0* x12* (Pe/2.0 - 1.0) - x11* x8**2* (self.km**2* np.exp(-2.0* t) + 1.0) - 2.0* x2* x8* x9 + 4.0* x10* x0])
 
-    #Abajo se tiene la funcion que va a imprimir las graficas.
+    # Abajo se tiene la funcion que va a imprimir las graficas.
     def plot(self):
-        #En este arreglo se guardan los resultados de la funcion solver. Las variables se acomodan como en la funcion RHS.
+        # En este arreglo se guardan los resultados de la funcion solver. Las variables se acomodan como en la funcion RHS.
         z0, z2, z4, z5, z6, z7, z8 = self.solverBG().T
         z9, z10, z11, z12 = self.solverPB().T
         #x, u, z, nu, l, s, b = self.solver().T
@@ -213,7 +213,7 @@ class DarkM:
         w12 = []
 
         for t, aux0, aux2, aux4, aux5, aux6, aux7, aux8, aux9, aux10, aux11, aux12  in zip(self.t, z0, z2, z4, z5, z6, z7, z8, z9[::-1], z10[::-1], z11[::-1], z12[::-1]):
-            #Resolucion de las graficas
+            # Resolucion de las graficas
             if i %200 == 0:
                tiempo.append(np.exp(t))  # e-folding N.
                w0.append(aux0)
