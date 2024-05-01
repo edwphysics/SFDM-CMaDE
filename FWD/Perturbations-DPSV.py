@@ -22,12 +22,12 @@ class DarkM:
 
         self.name   = name
         self.cte    = 3./2.0
-        #self.k2 = 0.1              # Tamaño de la fluctuación que se estudia k^2/m^2
-        #self.Lambda = 0.0          # Constante de autointeraccion de la materia oscura
+        #self.k2 = 0.1                  # Tamaño de la fluctuación que se estudia k^2/m^2
+        #self.Lambda = 0.0              # Constante de autointeraccion de la materia oscura
         self.masa   = 1.0e-23
         self.H0     = 1.0e-33           # Valor del parametro de hubble en eV, viene de H=70
         self.s      = self.masa/self.H0
-        self.k      = 2.009e-29          # Wavenumber Initial Value
+        self.k      = 2.009e-29         # Wavenumber Initial Value
         self.km     = self.k/self.masa
 
         # Rango del factor de escala
@@ -94,10 +94,10 @@ class DarkM:
 
     # Perturbations: Condiciones iniciales para las variables en a ~ 1e-6. 
     def solverPB(self):
-        y0 = np.array([1.0e-33,                # l1 Initial Condition
-                       1.0e-33,                # l2 Initial Condition
-                       1.0e-33,                # z1 Initial Condition
-                       1.0e-33])               # z2 Initial Condition   
+        y0 = np.array([1.0e-30,                # l1 Initial Condition
+                       1.0e-30,                # l2 Initial Condition
+                       1.0e-30,                # z1 Initial Condition
+                       1.0e-30])               # z2 Initial Condition   
 
         y_result = self.ABM4(self.RHSPB, y0, self.t[::-1], self.solverBG()[::-1])
         #y_result = self.rk4(self.RHS, y0, self.t)
@@ -198,6 +198,9 @@ class DarkM:
         fig18 = plt.figure(figsize=(9,10))  # Define una nueva ventana.
         ax18  = fig18.add_subplot(111)      # La grafica correspondiente a la nueva ventana.
 
+        fig19 = plt.figure(figsize=(9,10))  # Define una nueva ventana.
+        ax19  = fig19.add_subplot(111)      # La grafica correspondiente a la nueva ventana.
+
         i = 0
         tiempo = []
         w0 = []
@@ -214,7 +217,7 @@ class DarkM:
 
         for t, aux0, aux2, aux4, aux5, aux6, aux7, aux8, aux9, aux10, aux11, aux12  in zip(self.t, z0, z2, z4, z5, z6, z7, z8, z9[::-1], z10[::-1], z11[::-1], z12[::-1]):
             # Resolucion de las graficas
-            if i %200 == 0:
+            if (i % 200 == 0):
                tiempo.append(np.exp(t))  # e-folding N.
                w0.append(aux0)
                w2.append(aux2)
@@ -232,11 +235,11 @@ class DarkM:
         tiempo_np = np.array(tiempo)
             
         # Kinetic Energy
-        ax0.semilogx(tiempo, np.array(w0)*np.array(w0) , 'black', label="$x^2$")
-        ax0.set_ylabel('$x^2(a)$', fontsize=20) #original
-        ax0.set_xlabel('$a$', fontsize=15)
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        ax0.semilogx(tiempo, np.array(w0)*np.array(w0) , 'black', label=r'$x^2$')
+        ax0.set_ylabel(r'$x^2(a)$', fontsize=20) #original
+        ax0.set_xlabel(r'$a$', fontsize=15)
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #plt.legend()
         #ax3.legend()
         ax0.legend(loc = 'best', fontsize = 'xx-large')
@@ -244,11 +247,11 @@ class DarkM:
         #plt.show()       
 
         # Scalar Field
-        ax2.semilogx(tiempo, np.sqrt(6)* np.array(w2)/np.array(w8) , 'black', label="$\kappa\Phi_0$")
-        ax2.set_ylabel('$\kappa\Phi_0(a)$', fontsize=20) #original
-        ax2.set_xlabel('$a$', fontsize=15)
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        ax2.semilogx(tiempo, np.sqrt(6)* np.array(w2)/np.array(w8) , 'black', label=r'$\kappa\Phi_0$')
+        ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20) #original
+        ax2.set_xlabel(r'$a$', fontsize=15)
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #plt.legend()
         #ax3.legend()
         ax2.legend(loc = 'best', fontsize = 'xx-large')
@@ -256,15 +259,15 @@ class DarkM:
         #plt.show()        
 
         # Energy Density Evolution
-        ax3.semilogx(tiempo, np.array(w0)*np.array(w0) + np.array(w2)*np.array(w2), 'black', label="$\Omega_{SFDM}$")
-        ax3.semilogx(tiempo, np.array(w4)*np.array(w4), 'blue', label="$\Omega_{\gamma}$") #radiacion
-        ax3.semilogx(tiempo, np.array(w5)*np.array(w5), 'orange', label="$\Omega_{v}$") #neutrinos
-        ax3.semilogx(tiempo, np.array(w6)*np.array(w6), 'red', label="$\Omega_b$")  #bariones
-        ax3.semilogx(tiempo, np.array(w7)*np.array(w7), 'green', label="$\Omega_{\Lambda}$")  #constante cosmologica
-        ax3.set_ylabel('$\Omega(a)$', fontsize=20) #original
-        ax3.set_xlabel('$a$', fontsize=15)
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        ax3.semilogx(tiempo, np.array(w0)*np.array(w0) + np.array(w2)*np.array(w2), 'black', label=r'$\Omega_{SFDM}$')
+        ax3.semilogx(tiempo, np.array(w4)*np.array(w4), 'blue', label=r'$\Omega_{\gamma}$') #radiacion
+        ax3.semilogx(tiempo, np.array(w5)*np.array(w5), 'orange', label=r"$\Omega_{v}$") #neutrinos
+        ax3.semilogx(tiempo, np.array(w6)*np.array(w6), 'red', label=r"$\Omega_b$")  #bariones
+        ax3.semilogx(tiempo, np.array(w7)*np.array(w7), 'green', label=r"$\Omega_{\Lambda}$")  #constante cosmologica
+        ax3.set_ylabel(r'$\Omega(a)$', fontsize=20) #original
+        ax3.set_xlabel(r'$a$', fontsize=15)
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #plt.legend()
         #ax3.legend()
         ax3.legend(loc = 'best', fontsize = 'xx-large')
@@ -272,107 +275,120 @@ class DarkM:
         #plt.show()        
 
         # Variable Espuria
-        ax8.semilogx(tiempo, np.array(w8), 'black', label="$s$")
-        ax8.set_ylabel('$s(a)$', fontsize=20)
-        ax8.set_xlabel('$a$', fontsize=15)
+        ax8.semilogx(tiempo, np.array(w8), 'black', label=r"$s$")
+        ax8.set_ylabel(r'$s(a)$', fontsize=20)
+        ax8.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax8.legend()
         ax8.legend(loc = 'best', fontsize = 'xx-large')
         fig8.savefig('s.pdf')
         #plt.show()
 
         # Gravitational Potential
-        ax9.semilogx(tiempo, np.array(w9), 'black', label="$\phi$")
-        ax9.set_ylabel('$\phi(a)$', fontsize=20)
-        ax9.set_xlabel('$a$', fontsize=15)
+        ax9.semilogx(tiempo, np.array(w9), 'black', label=r"$\phi$")
+        ax9.set_ylabel(r'$\phi(a)$', fontsize=20)
+        ax9.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax9.legend()
         ax9.legend(loc = 'best', fontsize = 'xx-large')
         fig9.savefig('phi.pdf')
         #plt.show()
 
         # Perturbed Scalar Field
-        ax11.semilogx(tiempo, np.sqrt(6)* np.array(w11), 'black', label="$\kappa\delta\Phi$")
-        ax11.set_ylabel('$\kappa\delta\Phi(a)$', fontsize=20)
-        ax11.set_xlabel('$a$', fontsize=15)
+        ax11.semilogx(tiempo, np.sqrt(6)* np.array(w11), 'black', label=r"$\kappa\delta\Phi$")
+        ax11.set_ylabel(r'$\kappa\delta\Phi(a)$', fontsize=20)
+        ax11.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax9.legend()
         ax11.legend(loc = 'best', fontsize = 'xx-large')
         fig11.savefig('dPhi.pdf')
         #plt.show()
 
         # SF Energy Density Distortions
-        ax13.semilogx(tiempo, 2* (np.array(w0)* (np.array(w12) - np.array(w0)* np.array(w9)) + np.array(w8)* np.array(w2)* np.array(w11))/(np.array(w0)**2 + np.array(w2)**2), 'black', label="$\delta$")
-        ax13.set_ylabel('$\delta(a)$', fontsize=20)
-        ax13.set_xlabel('$a$', fontsize=15)
+        ax13.semilogx(tiempo, 2* (np.array(w0)* (np.array(w12) - np.array(w0)* np.array(w9)) + np.array(w8)* np.array(w2)* np.array(w11))/(np.array(w0)**2 + np.array(w2)**2), 'black', label=r"$\delta$")
+        ax13.set_ylabel(r'$\delta(a)$', fontsize=20)
+        ax13.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax9.legend()
         ax13.legend(loc = 'best', fontsize = 'xx-large')
         fig13.savefig('delta.pdf')
         #plt.show()
 
         # Equation of State
-        ax15.semilogx(tiempo, (np.array(w0)**2 - np.array(w2)**2)/(np.array(w0)**2 + np.array(w2)**2), 'black', label="$\omega_{\Phi}$")
-        ax15.set_ylabel('$\omega_{\Phi}(a)$', fontsize=20)
-        ax15.set_xlabel('$a$', fontsize=15)
+        ax15.semilogx(tiempo, (np.array(w0)**2 - np.array(w2)**2)/(np.array(w0)**2 + np.array(w2)**2), 'black', label=r"$\omega_{\Phi}$")
+        ax15.set_ylabel(r'$\omega_{\Phi}(a)$', fontsize=20)
+        ax15.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax9.legend()
         ax15.legend(loc = 'best', fontsize = 'xx-large')
         fig15.savefig('omega.pdf')
         #plt.show()
 
         # Pressure to Density Perturbations Ratio
-        ax16.semilogx(tiempo, (np.array(w0)* np.array(w12) - np.array(w0)**2* np.array(w9) - np.array(w2)* np.array(w8)* np.array(w11))/(np.array(w0)* np.array(w12) - np.array(w0)**2* np.array(w9) + np.array(w2)* np.array(w8)* np.array(w11)), 'black', label="$\delta P/\delta r$")
-        ax16.set_ylabel('$\delta P/\delta r$', fontsize=20)
-        ax16.set_xlabel('$a$', fontsize=15)
+        ax16.semilogx(tiempo, (np.array(w0)* np.array(w12) - np.array(w0)**2* np.array(w9) - np.array(w2)* np.array(w8)* np.array(w11))/(np.array(w0)* np.array(w12) - np.array(w0)**2* np.array(w9) + np.array(w2)* np.array(w8)* np.array(w11)), 'black', label=r"$\delta P/\delta\rho$")
+        ax16.set_ylabel(r'$\delta P/\delta\rho$', fontsize=20)
+        ax16.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax9.legend()
         ax16.legend(loc = 'best', fontsize = 'xx-large')
-        fig16.savefig('dPdr.pdf')
+        fig16.savefig('dPdrho.pdf')
         #plt.show()
 
         # Pressure Perturbation
-        ax17.semilogx(tiempo, np.array(w0)* np.array(w12) - np.array(w0)**2* np.array(w9) - np.array(w2)* np.array(w8)* np.array(w11), 'black', label="$\delta P$")
-        ax17.set_ylabel('$\delta P$', fontsize=20)
-        ax17.set_xlabel('$a$', fontsize=15)
+        ax17.semilogx(tiempo, np.array(w0)* np.array(w12) - np.array(w0)**2* np.array(w9) - np.array(w2)* np.array(w8)* np.array(w11), 'black', label=r"$\delta P$")
+        ax17.set_ylabel(r'$\delta P$', fontsize=20)
+        ax17.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax9.legend()
         ax17.legend(loc = 'best', fontsize = 'xx-large')
         fig17.savefig('dP.pdf')
         #plt.show()
 
         # G/H Function
-        ax18.semilogx(tiempo, (2.0/3.0)* self.km**2* np.array(w8)**2* (np.array(w9) + np.array(w10))* np.exp(-2.0* tiempo_np)/(np.array(w0)**2 + np.array(w2)**2), 'black', label="$G_\Phi/H$")
-        ax18.set_ylabel('$G_\Phi/H$', fontsize=20)
-        ax18.set_xlabel('$a$', fontsize=15)
+        ax18.semilogx(tiempo, (2.0/3.0)* self.km**2* np.array(w8)**2* (np.array(w9) + np.array(w10))* np.exp(-2.0* tiempo_np)/(np.array(w0)**2 + np.array(w2)**2), 'black', label=r"$G_\Phi/H$")
+        ax18.set_ylabel(r'$G_\Phi/H$', fontsize=20)
+        ax18.set_xlabel(r'$a$', fontsize=15)
         #plt.ylabel('n (a)', fontsize=20) #original
         #original
-        #plt.ylabel('$\omega (a)$', fontsize=20) #ecuacion de estado
-        #plt.legend(('$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
         #ax9.legend()
         ax18.legend(loc = 'best', fontsize = 'xx-large')
         fig18.savefig('GH.pdf')
+        #plt.show()
+
+        # Friedmann Restriction
+        ax19.semilogx(tiempo, np.array(w0)*np.array(w0) + np.array(w2)*np.array(w2) + np.array(w4)*np.array(w4) + np.array(w5)*np.array(w5) + np.array(w6)*np.array(w6) + np.array(w7)*np.array(w7), 'black', label=r"$F$")
+        ax19.set_ylabel(r'$F(a)$', fontsize=20)
+        ax19.set_xlabel(r'$a$', fontsize=15)
+        #plt.ylabel('n (a)', fontsize=20) #original
+        #original
+        #plt.ylabel(r'$\omega (a)$', fontsize=20) #ecuacion de estado
+        #plt.legend((r'$\Omega_{dm}$', '$\Omega_{\gamma}$', '$\Omega_{\Lambda}$', '$\Omega_b$' ))
+        #ax8.legend()
+        ax19.legend(loc = 'best', fontsize = 'xx-large')
+        fig19.savefig('F.pdf')
         #plt.show()
 
 if __name__ == '__main__':
