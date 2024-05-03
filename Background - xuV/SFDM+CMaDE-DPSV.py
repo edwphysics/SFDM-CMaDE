@@ -19,7 +19,7 @@ import time
 class DarkM:
     def __init__(self):
 
-        self.mass = 1.e-33 # Scalar field mass in eV
+        self.mass = 1.e-22 # Scalar field mass in eV
         self.H0   = 1.49e-33 # Hubble parameter in eV
         self.s    = self.mass/self.H0
 
@@ -30,7 +30,7 @@ class DarkM:
         self.d  = (self.Nf - self.Ni)/ self.NP
         self.t  = [self.Ni + self.d* i for i in np.arange(self.NP)]
 
-    # Runge-Kutta 4 initialices the method ABM4
+    # Runge-Kutta 4 initial0ices the method ABM4
     def rk4(self, func, y_0, t):
         y = np.zeros([4, len(y_0)])
         y[0] = y_0
@@ -86,7 +86,7 @@ class DarkM:
                        np.sqrt(0.00002),  # n: x5 Neutrinos
                        np.sqrt(0.04),     # b: x6 Baryons
                        np.sqrt(0.73),     # l: x7 Lambda
-                       1.e6])             # s: x8 Spurious Variable
+                       1.e4])             # s: x8 Spurious Variable
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -101,12 +101,12 @@ class DarkM:
         kc   = 1.
         Q    = 1.
 
-        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe,# - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
+        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
                          x0* x8 + 1.5* x2* Pe,
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - CTer),
                          1.5* x6* (Pe - 1.),
-                         1.5* x7* Pe,# + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
+                         1.5* x7* Pe + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
                          #-1.5* x8**(-2)])
                          1.5* Pe* x8])
 
@@ -165,7 +165,7 @@ class DarkM:
         #plt.show()        
 
         # Friedmann Restriction
-        ax9.semilogx(tiempo, 1. - (w0**2 + w2**2 + w4**2 + w5**2 + w6**2 + w7**2), 'black', label=r"$F$")
+        ax9.semilogx(tiempo, w0**2 + w2**2 + w4**2 + w5**2 + w6**2 + w7**2, 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
