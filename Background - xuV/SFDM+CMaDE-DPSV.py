@@ -18,9 +18,9 @@ import math
 class DarkM:
     def __init__(self):
 
-        self.masa = 1.e-33 # Scalar field mass in eV
+        self.mass = 1.e-33 # Scalar field mass in eV
         self.H0   = 1.49e-33 # Hubble parameter in eV
-        self.s    = self.masa/self.H0
+        self.s    = self.mass/self.H0
 
         # Scale factor range
         self.NP = 100000
@@ -46,7 +46,6 @@ class DarkM:
 
         return y
 
-
     # Adams-Bashforth 4/Moulton 4 Step Predictor/Corrector
     def ABM4(self, func, y_0, t):
         y = np.zeros([len(t), len(y_0)])
@@ -57,7 +56,13 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
+        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_SFDM"))
+
         for i in range(3, self.NP - 1):
+
+            # Prints N, F, and Omega SFDM
+            if i % 10000 == 0:
+                print("{:<10}\t{:<10}\t{:<10}".format(t[i], np.sum(np.square(np.array(y[i,:-1]))), np.sum(np.square(np.array(y[i,:2])))))
 
             h   = self.d
             k_4 = k_3
@@ -74,13 +79,13 @@ class DarkM:
 
     # Initial conditions from today comsological observations
     def solver(self):
-        y0 = np.array([np.sqrt(1.0e-9),   # x: x0 Kinetic energy - small to avoid 1/x divergence
+        y0 = np.array([np.sqrt(1.e-10),   # x: x0 Kinetic energy - small to avoid 1/x divergence
                        np.sqrt(0.22994),  # u: x2 Potential energy
                        np.sqrt(0.00004),  # z: x4 Radiation
                        np.sqrt(0.00002),  # n: x5 Neutrinos
                        np.sqrt(0.04),     # b: x6 Baryons
                        np.sqrt(0.73),     # l: x7 Lambda
-                       1.0e3])            # s: x8 Spurious Variable
+                       1.e3])             # s: x8 Spurious Variable
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -95,13 +100,14 @@ class DarkM:
         kc   = 1.
         Q    = 1.
 
-        return np.array([-3.* x0 - x8*x2 + 1.5* x0* Pe - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
+        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
                          x0* x8 + 1.5* x2* Pe,
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - CTer),
                          1.5* x6* (Pe - 1.),
                          1.5* x7* Pe + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
-                         -1.5* x8**(-2)])
+                         #-1.5* x8**(-2)])
+                         1.5* Pe* x8])
 
 #Abajo se tiene la funcion que va a imprimir las graficas.
     def plot(self):
@@ -126,7 +132,7 @@ class DarkM:
 
         for t, aux0, aux2, aux4, aux5, aux6, aux7, aux8  in zip(self.t, z0, z2, z4, z5, z6, z7, z8):
             #Resolucion de las graficas
-            if i %200 == 0:
+            if i % 200 == 0:
                tiempo = np.append(tiempo, np.exp(t))  # Scale factor from e-folding N
                w0 = np.append(w0, aux0)
                w2 = np.append(w2, aux2)
@@ -158,7 +164,7 @@ class DarkM:
         #plt.show()        
 
         # Friedmann Restriction
-        ax9.semilogx(tiempo, w0**2 + w2**2 + w4**2 + w5**2 + w6**2 + w7**2, 'black', label=r"$F$")
+        ax9.semilogx(tiempo, 1. - (w0**2 + w2**2 + w4**2 + w5**2 + w6**2 + w7**2), 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
