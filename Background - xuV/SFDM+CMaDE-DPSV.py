@@ -14,6 +14,7 @@ from scipy.integrate import odeint
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import math
+import time
 
 class DarkM:
     def __init__(self):
@@ -23,7 +24,7 @@ class DarkM:
         self.s    = self.mass/self.H0
 
         # Scale factor range
-        self.NP = 100000
+        self.NP = 10000000
         self.Ni = np.log(1.e-0)
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
@@ -85,7 +86,7 @@ class DarkM:
                        np.sqrt(0.00002),  # n: x5 Neutrinos
                        np.sqrt(0.04),     # b: x6 Baryons
                        np.sqrt(0.73),     # l: x7 Lambda
-                       1.e3])             # s: x8 Spurious Variable
+                       1.e6])             # s: x8 Spurious Variable
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -100,12 +101,12 @@ class DarkM:
         kc   = 1.
         Q    = 1.
 
-        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
+        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe,# - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
                          x0* x8 + 1.5* x2* Pe,
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - CTer),
                          1.5* x6* (Pe - 1.),
-                         1.5* x7* Pe + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
+                         1.5* x7* Pe,# + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
                          #-1.5* x8**(-2)])
                          1.5* Pe* x8])
 
@@ -179,7 +180,12 @@ class DarkM:
         fig8.savefig('s.pdf')
         #plt.show()
 
-# Runs only if the script is run and self contained
+# Runs only if the script is self contained
 if __name__ == '__main__':
+    start_time = time.time()
+
     DM = DarkM()
     DM.plot()
+
+    # Prints total evaluation time with 3 decimals
+    print("\nEvaluation time = ", "{:.3f}".format(time.time() - start_time)," seconds")
