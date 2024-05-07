@@ -62,7 +62,7 @@ class DarkM:
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
-            if i % 10000 == 0:
+            if i % 50000 == 0:
                 print("{:<10}\t{:<10}\t{:<10}".format(t[i], np.sum(np.square(np.array(y[i,:-1]))), np.sum(np.square(np.array(y[i,:2])))))
 
             h   = self.d
@@ -80,8 +80,8 @@ class DarkM:
 
     # Initial conditions from today comsological observations
     def solver(self):
-        y0 = np.array([np.sqrt(1.e-10),   # x: x0 Kinetic energy - small to avoid 1/x divergence
-                       np.sqrt(0.22994),  # u: x2 Potential energy
+        y0 = np.array([np.sqrt(0.22994),  # x: x0 Kinetic energy - small to avoid 1/x divergence
+                       np.sqrt(0.),       # u: x2 Potential energy
                        np.sqrt(0.00004),  # z: x4 Radiation
                        np.sqrt(0.00002),  # n: x5 Neutrinos
                        np.sqrt(0.04),     # b: x6 Baryons
@@ -94,12 +94,14 @@ class DarkM:
 
         return y_result
 
+    # System of Equations
     def RHS(self, t, y):
         x0, x2, x4, x5, x6, x7, x8 = y
+
         CTer = 4./3.
-        Pe   = 2.* x0**2 + 4.* x4**2/3. + 4.* x5**2/3. + x6**2
         kc   = 1.
         Q    = 1.
+        Pe   = 2.* x0**2 + 4.* x4**2/3. + 4.* x5**2/3. + x6**2 + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x7**3* np.exp(-t)
 
         return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
                          x0* x8 + 1.5* x2* Pe,
@@ -110,7 +112,7 @@ class DarkM:
                          #-1.5* x8**(-2)])
                          1.5* Pe* x8])
 
-#Abajo se tiene la funcion que va a imprimir las graficas.
+    # Plotting Function
     def plot(self):
         #En este arreglo se guardan los resultados de la funcion solver. Las variables se acomodan como en la funcion RHS.
         z0, z2, z4, z5, z6, z7, z8 = self.solver().T
