@@ -18,7 +18,7 @@ class DarkM:
     def __init__(self):
 
         # System Constants
-        self.mass = 1.e-26                  # Scalar field mass in eV
+        self.mass = 1.e-22                  # Scalar field mass in eV
         self.H0   = 1.49e-33                # Hubble parameter in eV
         self.y1_0 = 2.* self.mass/self.H0   # Mass to Hubble Ratio
 
@@ -64,13 +64,13 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_SFDM"))
+        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_SFDM", "THETA"))
 
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
             if i % 50000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1]))
+                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1], y[i,0]))
 
             h   = self.d
             k_4 = k_3
@@ -181,11 +181,11 @@ class DarkM:
         #plt.show()
 
         # Spurious Variable
-        ax8.semilogx(tiempo, w7, 'black', label=r"$s$")
-        ax8.set_ylabel(r'$s$', fontsize=20)
+        ax8.semilogx(tiempo, w7, 'black', label=r"$y1$")
+        ax8.set_ylabel(r'$y1$', fontsize=20)
         ax8.set_xlabel(r'$a$', fontsize=15)
         ax8.legend(loc = 'best', fontsize = 'xx-large')
-        fig8.savefig('s.pdf')
+        fig8.savefig('y1.pdf')
         #plt.show()
 
 # Runs only if the script is self contained
