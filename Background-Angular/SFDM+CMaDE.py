@@ -17,9 +17,18 @@ import time
 class DarkM:
     def __init__(self):
 
-        self.mass = 1.e-22 # Scalar field mass in eV
-        self.H0   = 1.49e-33 # Hubble parameter in eV
-        self.s    = self.mass/self.H0
+        # System Constants
+        self.mass = 1.e-26                  # Scalar field mass in eV
+        self.H0   = 1.49e-33                # Hubble parameter in eV
+        self.y1_0 = 2.* self.mass/self.H0   # Mass to Hubble Ratio
+
+        # Initial Conditions
+        self.Th_0   = 0.        # x1: Th Theta
+        self.OmDM_0 = 0.22994   # x3:  z Radiation
+        self.z_0    = 0.00004   # x4: nu Neutrinos
+        self.nu_0   = 0.00002   # x5:  b Baryons
+        self.b_0    = 0.04      # x6:  l Lambda
+        self.OmDE_0 = 0.73      # x7: y1 Mass to Hubble Ratio
 
         # Scale factor range
         self.NP = 1000000
@@ -78,13 +87,13 @@ class DarkM:
 
     # Initial conditions from today comsological observations
     def solver(self):
-        y0 = np.array([np.sqrt(0.),       # x1: Th Theta
-                       np.sqrt(0.22994),  # x2: Om Omega_Phi
-                       np.sqrt(0.00004),  # x3:  z Radiation
-                       np.sqrt(0.00002),  # x4: nu Neutrinos
-                       np.sqrt(0.04),     # x5:  b Baryons
-                       np.sqrt(0.73),     # x6:  l Lambda
-                       1.e9])             # x7:  y1 Spurious Variable
+        y0 = np.array([np.sqrt(self.Th_0),       
+                       self.OmDM_0,           
+                       np.sqrt(self.z_0),  
+                       np.sqrt(self.nu_0),  
+                       np.sqrt(self.b_0),     
+                       np.sqrt(self.OmDE_0),     
+                       self.y1_0])        
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -107,7 +116,6 @@ class DarkM:
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
                          1.5* x6* Pe,
-                         #-1.5* x7**(-2)])
                          1.5* Pe* x7])
 
     # Plotting Function
