@@ -2,8 +2,8 @@
 
 Scalar Field Dark Matter with the Alma-Ureña (2016) system of equations.
 
-Combination of the SFDM model equations. 
-Here, the density parameters of the components of the universe are calculated solving the dynamical equations using the ABMM4 method.
+Solution of the SFDM + CMaDE model equations. 
+The density parameters of the components of the universe are calculated solving the dynamical equations using the ABMM4 method.
 
 Modified from the original code by Luis Osvaldo Tellez Tovar for the paper "The quantum character of the Scalar Field Dark Matter" by Tonatiuh Matos
 
@@ -17,18 +17,18 @@ import time
 class DarkM:
     def __init__(self):
 
-        # System Constants
+        # Scalar Field Constants
         self.mass = 1.e-22                  # Scalar field mass in eV
         self.H0   = 1.49e-33                # Hubble parameter in eV
-        self.y1_0 = 2.* self.mass/self.H0   # Mass to Hubble Ratio
+        self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
         # Initial Conditions
-        self.Th_0   = 0.        # x1: Th Theta
-        self.OmDM_0 = 0.22994   # x3:  z Radiation
-        self.z_0    = 0.00004   # x4: nu Neutrinos
-        self.nu_0   = 0.00002   # x5:  b Baryons
-        self.b_0    = 0.04      # x6:  l Lambda
-        self.OmDE_0 = 0.73      # x7: y1 Mass to Hubble Ratio
+        self.Th_0   = np.pi/2.  # x1: Th Theta - to avoid Cot(0/2.)
+        self.OmDM_0 = 0.22994   # x2: Om Omega_DM
+        self.z_0    = 0.00004   # x3:  z Radiation 
+        self.nu_0   = 0.00002   # x4: nu Neutrinos 
+        self.b_0    = 0.04      # x5:  b Baryons
+        self.OmDE_0 = 0.73      # x6:  l Lambda
 
         # Scale factor range
         self.NP = 1000000
@@ -64,13 +64,13 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_SFDM", "THETA"))
+        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_SFDM"))
 
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
             if i % 50000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1], y[i,0]))
+                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1]))
 
             h   = self.d
             k_4 = k_3
@@ -108,14 +108,15 @@ class DarkM:
         CTer = 4./3.
         kc   = 1.
         Q    = 1.
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2
+        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x6**3* np.exp(-t)
+        gam  = (Q/np.pi)* (kc/x2)* np.sqrt(3/2.)* x6**3* np.exp(-t)
 
-        return np.array([-3* np.sin(x1) + x7,
-                         3* (Pe - 1. + np.cos(x1))* x2,
+        return np.array([-3.* np.sin(x1) + x7 - 2.* gam/ np.tan(x1/2.),
+                         3.* (Pe - 1. + np.cos(x1))* x2 - gam* x2,
                          1.5* x3* (Pe - CTer),
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
-                         1.5* x6* Pe,
+                         1.5* x6* Pe + (Q/np.pi)* np.sqrt(3/2.)* x6**2* np.exp(-t),
                          1.5* Pe* x7])
 
     # Plotting Function
