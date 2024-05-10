@@ -2,8 +2,8 @@
 
 Scalar Field Dark Matter with the Alma-Ureña (2016) system of equations.
 
-Combination of the SFDM model equations. 
-Here, the density parameters of the components of the universe are calculated solving the dynamical equations using the ABMM4 method.
+Solution of the SFDM model equations. Good solving parameters: NP = 10000000 and mass = 1.e-22 
+The density parameters of the components of the universe are calculated solving the dynamical equations using the ABMM4 method.
 
 Modified from the original code by Luis Osvaldo Tellez Tovar for the paper "The quantum character of the Scalar Field Dark Matter" by Tonatiuh Matos
 
@@ -23,15 +23,15 @@ class DarkM:
         self.y1_0 = 2.* self.mass/self.H0   # Mass to Hubble Ratio
 
         # Initial Conditions
-        self.Th_0   = 0.        # x1: Th Theta
-        self.OmDM_0 = 0.22994   # x3:  z Radiation
-        self.z_0    = 0.00004   # x4: nu Neutrinos
-        self.nu_0   = 0.00002   # x5:  b Baryons
-        self.b_0    = 0.04      # x6:  l Lambda
-        self.OmDE_0 = 0.73      # x7: y1 Mass to Hubble Ratio
+        self.Th_0   = 0.        # x1: Th Theta 
+        self.OmDM_0 = 0.22994   # x2: Om Omega_DM
+        self.z_0    = 0.00004   # x3:  z Radiation 
+        self.nu_0   = 0.00002   # x4: nu Neutrinos 
+        self.b_0    = 0.04      # x5:  b Baryons
+        self.OmDE_0 = 0.73      # x6:  l Lambda
 
         # Scale factor range
-        self.NP = 1000000
+        self.NP = 10000000
         self.Ni = np.log(1.e-0)
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
