@@ -1,6 +1,6 @@
 '''
 
-Scalar Field Dark Matter with the Alma-Ureña (2016) system of equations.
+Scalar Field Dark Matter and Compton Mass Dark Energy with the Alma-Ureña (2016) system of equations.
 
 Solution of the SFDM + CMaDE model equations. 
 The density parameters of the components of the universe are calculated solving the dynamical equations using the ABMM4 method.
@@ -31,7 +31,7 @@ class DarkM:
         self.OmDE_0 = 0.73      # x6:  l Lambda
 
         # Scale factor range
-        self.NP = 1000000
+        self.NP = 100000
         self.Ni = np.log(1.e-0)
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
@@ -69,7 +69,7 @@ class DarkM:
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
-            if i % 50000 == 0:
+            if i % 5000 == 0:
                 print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1]))
 
             h   = self.d
@@ -105,18 +105,19 @@ class DarkM:
     def RHS(self, t, y):
         x1, x2, x3, x4, x5, x6, x7 = y
 
-        CTer = 4./3.
+        CTer = 4/3.
         kc   = 1.
         Q    = 1.
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x6**3* np.exp(-t)
-        gam  = (Q/np.pi)* (kc/x2)* np.sqrt(3/2.)* x6**3* np.exp(-t)
+        CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
+        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (2/3.)* CMF* x6**3
+        gamm = CMF* (kc/x2)* x6**3
 
-        return np.array([-3.* np.sin(x1) + x7 - 2.* gam/ np.tan(x1/2.),
-                         3.* (Pe - 1. + np.cos(x1))* x2 - gam* x2,
+        return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
+                         3.* (Pe - 1. + np.cos(x1))* x2 - gamm* x2,
                          1.5* x3* (Pe - CTer),
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
-                         1.5* x6* Pe + (Q/np.pi)* np.sqrt(3/2.)* x6**2* np.exp(-t),
+                         1.5* x6* Pe + CMF* x6**2,
                          1.5* Pe* x7])
 
     # Plotting Function
