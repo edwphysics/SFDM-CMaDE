@@ -28,7 +28,8 @@ class DarkM:
         self.z_0    = 0.00004   # x3:  z Radiation 
         self.nu_0   = 0.00002   # x4: nu Neutrinos 
         self.b_0    = 0.04      # x5:  b Baryons
-        self.OmDE_0 = 0.73      # x6:  l Lambda
+        self.OmDE_0 = 0.729     # x6:  l Lambda
+        self.Omk_0  = 0.001     # Curvature
 
         # Scale factor range
         self.NP = 1000000
@@ -69,7 +70,7 @@ class DarkM:
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
-            if i % 50000 == 0:
+            if i % 5000 == 0:
                 print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1]))
 
             h   = self.d
@@ -108,7 +109,7 @@ class DarkM:
         CTer = 4./3.
         kc   = 1.
         Q    = 1.
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x6**3* np.exp(-t)
+        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x6**3* np.exp(-t) + (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
         gam  = (Q/np.pi)* (kc/x2)* np.sqrt(3/2.)* x6**3* np.exp(-t)
 
         return np.array([-3.* np.sin(x1) + x7 - 2.* gam/ np.tan(x1/2.),
