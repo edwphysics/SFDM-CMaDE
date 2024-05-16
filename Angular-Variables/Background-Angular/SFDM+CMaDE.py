@@ -28,7 +28,8 @@ class DarkM:
         self.z_0    = 0.00004   # x3:  z Radiation 
         self.nu_0   = 0.00002   # x4: nu Neutrinos 
         self.b_0    = 0.04      # x5:  b Baryons
-        self.OmDE_0 = 0.73      # x6:  l Lambda
+        self.OmDE_0 = 0.729     # x6:  l Lambda
+        self.Omk_0  = 0.001     # Curvature
 
         # Scale factor range
         self.NP = 100000
@@ -109,7 +110,7 @@ class DarkM:
         kc   = 1.
         Q    = 1.
         CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (2/3.)* CMF* x6**3
+        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (2/3.)* CMF* x6**3 + (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
         gamm = CMF* (kc/x2)* x6**3
 
         return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
