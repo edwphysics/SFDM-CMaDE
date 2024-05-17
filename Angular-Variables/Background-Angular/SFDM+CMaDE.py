@@ -122,15 +122,17 @@ class DarkM:
 
         # CMaDE Factors
         CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
+        SF   = (rs/np.pi)* np.sqrt(3/2.)* np.exp(-t)
         gamm = CMF* (kc/x2)* x6**3
         w    = self.omega 
 
         # Contributions 
         k_Term     = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
-        SF_Term    = (1. + w)* x8**2
-        CMaDE_Term = (kc - 1. + rs)* (2/3.)* CMF* x6**3
+        SF_Term    = -(2/3.)* SF* x8**3
+        CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**3
 
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + CMaDE_Term + k_Term + SF_Term
+        # Hubble Parameter Evolution 
+        Pe = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + CMaDE_Term + k_Term + SF_Term
 
         return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
                          3.* (Pe - 1. + np.cos(x1))* x2 - gamm* x2,
@@ -138,8 +140,8 @@ class DarkM:
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
                          1.5* x6* Pe + CMF* x6**2,
-                         1.5* Pe* x7,
-                         1.5* (Pe - 1. - w)* x8 - rs* CMF* x6**3/x8])
+                         1.5* x7* Pe,
+                         1.5* x8* Pe + SF* x8**2])
 
     # Plotting Function
     def plot(self):
