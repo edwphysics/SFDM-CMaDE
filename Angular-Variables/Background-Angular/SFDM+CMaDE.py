@@ -22,6 +22,13 @@ class DarkM:
         self.H0   = 1.49e-33                # Hubble parameter in eV
         self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
+        # CMaDE Constants
+        self.kc    = 0.42
+        self.Q     = -0.43
+        self.rs    = 1. - self.kc - 1./self.Q
+        self.s0    = 1.e-5       # x8: Structure Fromation 
+        self.omega = 0.          # Equation of State Omega 
+
         # Initial Conditions
         self.Th_0   = np.pi/2.  # x1: Th Theta - to avoid Cot(0/2.)
         self.OmDM_0 = 0.22994   # x2: Om Omega_DM
@@ -71,7 +78,7 @@ class DarkM:
 
             # Prints N, F, and Omega SFDM
             if i % 5000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1]))
+                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,5]**2 + y[i,5]**2, y[i,1]))
 
             h   = self.d
             k_4 = k_3
@@ -94,7 +101,8 @@ class DarkM:
                        np.sqrt(self.nu_0),  
                        np.sqrt(self.b_0),     
                        np.sqrt(self.OmDE_0),     
-                       self.y1_0])        
+                       self.y1_0,
+                       self.s0])        
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -104,14 +112,25 @@ class DarkM:
 
     # System of Equations
     def RHS(self, t, y):
-        x1, x2, x3, x4, x5, x6, x7 = y
+        x1, x2, x3, x4, x5, x6, x7, x8 = y
 
+        # Parameters
         CTer = 4/3.
-        kc   = 1.
-        Q    = 1.
+        kc   = self.kc
+        Q    = self.Q
+        rs   = self.rs
+
+        # CMaDE Factors
         CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + (kc - 1.)* (2/3.)* CMF* x6**3 + (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
         gamm = CMF* (kc/x2)* x6**3
+        w    = self.omega 
+
+        # Contributions 
+        k_Term     = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
+        SF_Term    = (1. + w)* x8**2
+        CMaDE_Term = (kc - 1. + rs)* (2/3.)* CMF* x6**3
+
+        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + CMaDE_Term + k_Term + SF_Term
 
         return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
                          3.* (Pe - 1. + np.cos(x1))* x2 - gamm* x2,
@@ -119,12 +138,13 @@ class DarkM:
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
                          1.5* x6* Pe + CMF* x6**2,
-                         1.5* Pe* x7])
+                         1.5* Pe* x7,
+                         1.5* (Pe - 1. - w)* x8 - rs* CMF* x6**3/x8])
 
     # Plotting Function
     def plot(self):
         #En este arreglo se guardan los resultados de la funcion solver. Las variables se acomodan como en la funcion RHS.
-        z1, z2, z3, z4, z5, z6, z7 = self.solver().T
+        z1, z2, z3, z4, z5, z6, z7, z8 = self.solver().T
         #x, u, z, nu, l, s, b = self.solver().T
 
         fig3 = plt.figure(figsize=(9,10))
@@ -140,9 +160,9 @@ class DarkM:
         ax9  = fig9.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
 
         i = 0
-        tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = np.array([])
+        tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = w8 = np.array([])
 
-        for t, aux1, aux2, aux3, aux4, aux5, aux6, aux7  in zip(self.t, z1, z2, z3, z4, z5, z6, z7):
+        for t, aux1, aux2, aux3, aux4, aux5, aux6, aux7, aux8  in zip(self.t, z1, z2, z3, z4, z5, z6, z7, z8):
             #Resolucion de las graficas
             if i % 200 == 0:
                tiempo = np.append(tiempo, np.exp(t))  # Scale factor from e-folding N
@@ -153,6 +173,7 @@ class DarkM:
                w5 = np.append(w5, aux5)
                w6 = np.append(w6, aux6)
                w7 = np.append(w7, aux7)
+               w8 = np.append(w8, aux8)
             i += 1
 
         # Background Scalar Field
