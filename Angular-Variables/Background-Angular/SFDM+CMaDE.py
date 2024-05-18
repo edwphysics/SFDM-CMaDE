@@ -27,7 +27,6 @@ class DarkM:
         self.Q     = -0.43
         self.rs    = 1. - self.kc - 1./self.Q
         self.s0    = 1.e-5       # x8: Structure Fromation 
-        self.omega = 0.          # Equation of State Omega 
 
         # Initial Conditions
         self.Th_0   = np.pi/2.  # x1: Th Theta - to avoid Cot(0/2.)
@@ -72,13 +71,14 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_SFDM"))
+        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_LS"))
 
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
             if i % 5000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,5]**2 + y[i,5]**2, y[i,1]))
+                k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
+                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + y[i,7]**2 + k_Term, y[i,7]))
 
             h   = self.d
             k_4 = k_3
@@ -124,7 +124,6 @@ class DarkM:
         CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
         SF   = (rs/np.pi)* np.sqrt(3/2.)* np.exp(-t)
         gamm = CMF* (kc/x2)* x6**3
-        w    = self.omega 
 
         # Contributions 
         k_Term     = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
@@ -188,18 +187,18 @@ class DarkM:
 
         #Dark Matter
         ax3.semilogx(tiempo, w2, 'black', label=r"$\Omega_{SFDM}$")
-        ax3.semilogx(tiempo, w3**2, 'blue', label=r"$\Omega_{\gamma}$")     #radiation
-        ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{v}$")        #neutrinos
-        ax3.semilogx(tiempo, w5**2, 'red', label=r"$\Omega_b$")             #baryons
-        ax3.semilogx(tiempo, w6**2, 'green', label=r"$\Omega_{\Lambda}$")   #Lambda
-        ax3.set_ylabel(r'$\Omega(a)$', fontsize=20) #original
+        ax3.semilogx(tiempo, w3**2, 'blue', label=r"$\Omega_{\gamma}$")     # Radiation
+        ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{v}$")        # Neutrinos
+        ax3.semilogx(tiempo, w5**2, 'red', label=r"$\Omega_b$")             # Baryons
+        ax3.semilogx(tiempo, w6**2, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
+        ax3.set_ylabel(r'$\Omega(a)$', fontsize=20)                         
         ax3.set_xlabel(r'$a$', fontsize=15)
         ax3.legend(loc = 'best', fontsize = 'xx-large')
         fig3.savefig('Omegas.pdf')
         #plt.show()        
 
         # Friedmann Restriction
-        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2, 'black', label=r"$F$")
+        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + w8**2 + self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* tiempo), 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
