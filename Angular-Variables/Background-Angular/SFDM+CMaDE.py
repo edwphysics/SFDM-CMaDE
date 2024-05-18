@@ -25,8 +25,8 @@ class DarkM:
         # CMaDE Constants
         self.kc    = 0.42
         self.Q     = -0.43
-        self.rs    = 1. - self.kc - 1./self.Q
-        self.s0    = 1.e-5       # x8: Structure Fromation 
+        self.rs    = 0.4
+        self.s0    = 1.e-5      # x8: Structure Fromation 
 
         # Initial Conditions
         self.Th_0   = np.pi/2.  # x1: Th Theta - to avoid Cot(0/2.)
@@ -100,9 +100,9 @@ class DarkM:
                        np.sqrt(self.z_0),  
                        np.sqrt(self.nu_0),  
                        np.sqrt(self.b_0),     
-                       np.sqrt(self.OmDE_0),     
+                       np.sqrt(self.OmDE_0* (0/5.)),     
                        self.y1_0,
-                       self.s0])        
+                       np.sqrt(self.OmDE_0* (5/5.))])
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -190,7 +190,7 @@ class DarkM:
         ax3.semilogx(tiempo, w3**2, 'blue', label=r"$\Omega_{\gamma}$")     # Radiation
         ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{v}$")        # Neutrinos
         ax3.semilogx(tiempo, w5**2, 'red', label=r"$\Omega_b$")             # Baryons
-        ax3.semilogx(tiempo, w6**2, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
+        ax3.semilogx(tiempo, w6**2 + w8**2, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
         ax3.set_ylabel(r'$\Omega(a)$', fontsize=20)                         
         ax3.set_xlabel(r'$a$', fontsize=15)
         ax3.legend(loc = 'best', fontsize = 'xx-large')
@@ -198,7 +198,8 @@ class DarkM:
         #plt.show()        
 
         # Friedmann Restriction
-        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + w8**2 + self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* tiempo), 'black', label=r"$F$")
+        k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
+        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + w8**2 + k_Term, 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
