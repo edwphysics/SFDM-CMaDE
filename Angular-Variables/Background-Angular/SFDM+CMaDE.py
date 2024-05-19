@@ -25,8 +25,7 @@ class DarkM:
         # CMaDE Constants
         self.kc    = 0.42
         self.Q     = -0.43
-        self.rs    = 0.4
-        self.s0    = 1.e-5      # x8: Structure Fromation 
+        self.rs    = 0.2
 
         # Initial Conditions
         self.Th_0   = np.pi/2.  # x1: Th Theta - to avoid Cot(0/2.)
@@ -95,14 +94,14 @@ class DarkM:
 
     # Initial conditions from today comsological observations
     def solver(self):
-        y0 = np.array([np.sqrt(self.Th_0),       
+        y0 = np.array([self.Th_0,       
                        self.OmDM_0,           
                        np.sqrt(self.z_0),  
                        np.sqrt(self.nu_0),  
                        np.sqrt(self.b_0),     
-                       np.sqrt(self.OmDE_0* (0/5.)),     
+                       np.sqrt(self.OmDE_0),     
                        self.y1_0,
-                       np.sqrt(self.OmDE_0* (5/5.))])
+                       1.e-10])
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -131,7 +130,7 @@ class DarkM:
         CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**3
 
         # Hubble Parameter Evolution 
-        Pe = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + CMaDE_Term + k_Term + SF_Term
+        Pe = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + SF_Term + CMaDE_Term
 
         return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
                          3.* (Pe - 1. + np.cos(x1))* x2 - gamm* x2,
