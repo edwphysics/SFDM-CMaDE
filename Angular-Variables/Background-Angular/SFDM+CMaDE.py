@@ -133,7 +133,7 @@ class DarkM:
         Pe = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + SF_Term + CMaDE_Term
 
         return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
-                         3.* (Pe - 1. + np.cos(x1))* x2 - gamm* x2,
+                         3.* (Pe - 1. + np.cos(x1))* x2 - 2* gamm* x2,
                          1.5* x3* (Pe - CTer),
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
