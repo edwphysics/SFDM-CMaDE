@@ -134,7 +134,7 @@ class DarkM:
 
                         # Perturbations
                         x9,
-                        6.* x2* np.sin(x1/2.)* np.cos(x10/2.)* np.exp(2.*t + x11) - x9,
+                        (1.5* Pe - 2.)* x9 - 6.* x2* np.exp(x11)* np.sin(x1/2.)* np.cos(x10/2.),
                         3.* np.sin(x10) + x7 + 2.* w* np.sin(x10/2.)**2 - 2.* np.exp(-x11)* x9* np.sin(x1/2.)* np.sin(x10/2.),
                         -(3/2.)* (np.cos(x10) + np.cos(x1)) - w* np.sin(x10)/2. + np.exp(-x11)* x9* np.sin(x1/2.)* np.cos(x10/2.)
                         ])
@@ -156,6 +156,12 @@ class DarkM:
 
         fig9 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
         ax9  = fig9.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+
+        fig10 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
+        ax10  = fig10.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+
+        fig11 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
+        ax11  = fig11.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
 
         i = 0
         tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = w8 = w9 = w10 = w11 = np.array([])
@@ -197,6 +203,14 @@ class DarkM:
         fig3.savefig('Omegas.pdf')
         #plt.show()        
 
+        # Spurious Variable
+        ax8.semilogx(tiempo, w7, 'black', label=r"$y1$")
+        ax8.set_ylabel(r'$y1$', fontsize=20)
+        ax8.set_xlabel(r'$a$', fontsize=15)
+        ax8.legend(loc = 'best', fontsize = 'xx-large')
+        fig8.savefig('y1.pdf')
+        #plt.show()
+
         # Friedmann Restriction
         ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2, 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
@@ -205,12 +219,20 @@ class DarkM:
         fig9.savefig('F.pdf')
         #plt.show()
 
-        # Spurious Variable
-        ax8.semilogx(tiempo, w7, 'black', label=r"$y1$")
-        ax8.set_ylabel(r'$y1$', fontsize=20)
-        ax8.set_xlabel(r'$a$', fontsize=15)
-        ax8.legend(loc = 'best', fontsize = 'xx-large')
-        fig8.savefig('y1.pdf')
+        # Angle Difference 
+        ax10.plot(np.log(tiempo), w1 - w10, 'black', label=r"$\tilde{\vartheta}$")
+        ax10.set_ylabel(r'$\tilde{\vartheta}$', fontsize=20)
+        ax10.set_xlabel(r'$Log(a)$', fontsize=15)
+        ax10.legend(loc = 'best', fontsize = 'xx-large')
+        fig10.savefig('varth.pdf')
+        #plt.show()
+
+        # Perturbation Amplitude 
+        ax11.plot(np.log(tiempo), w11, 'black', label=r"$\alpha$")
+        ax11.set_ylabel(r'$\alpha$', fontsize=20)
+        ax11.set_xlabel(r'$Log(a)$', fontsize=15)
+        ax11.legend(loc = 'best', fontsize = 'xx-large')
+        fig11.savefig('alpha.pdf')
         #plt.show()
 
 # Runs only if the script is self contained
