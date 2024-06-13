@@ -43,17 +43,6 @@ class DarkM:
         self.d  = (self.Nf - self.Ni)/ self.NP
         self.t  = [self.Ni + self.d* i for i in np.arange(self.NP)]
 
-        # Cut-Off Parameter
-        self.x_str = 1.e15
-
-    # Cut-off Cosine
-    def cos_str(self, x):
-        return (1.- np.tanh(x**2 - self.x_str**2))* np.cos(x)/2.
-
-    # Cut-off Sine
-    def sin_str(self, x):
-        return (1.- np.tanh(x**2 - self.x_str**2))* np.sin(x)/2.
-
     # Runge-Kutta 4 initialices the method ABM4
     def rk4(self, func, y_0, t):
         y = np.zeros([4, len(y_0)])
@@ -81,13 +70,13 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "THETA", "NU"))
+        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "ALPHA", "NU"))
 
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
             if i % 50000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2, y[i,0], y[i,9]))
+                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2, y[i,10], y[i,9]))
 
             h   = self.d
             k_4 = k_3
@@ -129,14 +118,14 @@ class DarkM:
         CTer = 4./3.
         kc   = 1.
         Q    = 1.
-        Pe   = 2.* x2* self.sin_str(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2
+        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2
         km   = self.km 
         w    = km**2* x7* np.exp(-2*t)/2.
 
         return np.array([
                         # Background
-                        -3* self.sin_str(x1) + x7,
-                        3* (Pe - 1. + self.cos_str(x1))* x2,
+                        -3* np.sin(x1) + x7,
+                        3* (Pe - 1. + np.cos(x1))* x2,
                         1.5* x3* (Pe - CTer),
                         1.5* x4* (Pe - CTer),
                         1.5* x5* (Pe - 1.),
@@ -145,9 +134,9 @@ class DarkM:
 
                         # Perturbations
                         x9,
-                        (1.5* Pe - 2.)* x9 - 6.* x2* np.exp(x11)* self.sin_str(x1/2.)* self.cos_str((x1 - x10)/2.),
-                        -3.* (self.sin_str(x1) + self.sin_str(x1 - x10)) - w* (1. - self.cos_str(x1 - x10)) + np.exp(-x11)* x9* (self.cos_str(x10/2.) - self.cos_str(x1 - x10/2.)),
-                        -(3/2.)* (self.cos_str(x1 - x10) + self.cos_str(x1)) - w* self.sin_str(x1 - x10)/2. + np.exp(-x11)* x9* (self.sin_str(x10/2.) + self.sin_str(x1 - x10/2.))/2.
+                        (1.5* Pe - 2.)* x9 - 6.* x2* np.exp(x11)* np.sin(x1/2.)* np.cos(x10/2.),
+                        3.* np.sin(x10) + x7 + 2.* w* np.sin(x10/2.)**2 - 2.* np.exp(-x11)* x9* np.sin(x1/2.)* np.sin(x10/2.),
+                        -(3/2.)* (np.cos(x10) + np.cos(x1)) - w* np.sin(x10)/2. + np.exp(-x11)* x9* np.sin(x1/2.)* np.cos(x10/2.)
                         ])
 
     # Plotting Function
@@ -231,7 +220,7 @@ class DarkM:
         #plt.show()
 
         # Angle Difference 
-        ax10.plot(np.log(tiempo), w10, 'black', label=r"$\tilde{\vartheta}$")
+        ax10.plot(np.log(tiempo), w1 - w10, 'black', label=r"$\tilde{\vartheta}$")
         ax10.set_ylabel(r'$\tilde{\vartheta}$', fontsize=20)
         ax10.set_xlabel(r'$Log(a)$', fontsize=15)
         ax10.legend(loc = 'best', fontsize = 'xx-large')
