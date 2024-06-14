@@ -21,7 +21,7 @@ class DarkM:
         self.mass = 1.e-22                  # Scalar field mass in eV
         self.H0   = 1.49e-33                # Hubble parameter in eV
         self.y1_0 = 2.* self.mass/self.H0   # Mass to Hubble Ratio
-        self.km   = 1.e-7                   # Wavenumber to Mass Ratio
+        self.km   = 1.e-12                  # Wavenumber to Mass Ratio
 
         # Initial Conditions
         self.Th_0   = 0.        # x1: Th Theta 
@@ -70,7 +70,7 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "ALPHA", "NU"))
+        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "ALPHA", "VARTH"))
 
         for i in range(3, self.NP - 1):
 
@@ -134,9 +134,9 @@ class DarkM:
 
                         # Perturbations
                         x9,
-                        (1.5* Pe - 2.)* x9 - 6.* x2* np.exp(x11)* np.sin(x1/2.)* np.cos(x10/2.),
-                        3.* np.sin(x10) + x7 + 2.* w* np.sin(x10/2.)**2 - 2.* np.exp(-x11)* x9* np.sin(x1/2.)* np.sin(x10/2.),
-                        -(3/2.)* (np.cos(x10) + np.cos(x1)) - w* np.sin(x10)/2. + np.exp(-x11)* x9* np.sin(x1/2.)* np.cos(x10/2.)
+                        (1.5* Pe - 2.)* x9 - 6.* x2* np.exp(x11)* np.sin(x1/2.)* np.cos((x1 - x10)/2.),
+                        -3.* (np.sin(x1) + np.sin(x1 - x10)) - w* (1 - np.cos(x1 - x10)) + np.exp(-x11)* x9* (np.cos(x10/2.) - np.cos(x1 - x10/2.)),
+                        -(3/2.)* (np.cos(x1 - x10) + np.cos(x1)) - w* np.sin(x1 - x10)/2. + np.exp(-x11)* x9* (np.sin(x10/2.) + np.sin(x1 - x10/2.))/2.
                         ])
 
     # Plotting Function
@@ -220,7 +220,7 @@ class DarkM:
         #plt.show()
 
         # Angle Difference 
-        ax10.plot(np.log(tiempo), w1 - w10, 'black', label=r"$\tilde{\vartheta}$")
+        ax10.plot(np.log(tiempo), w10, 'black', label=r"$\tilde{\vartheta}$")
         ax10.set_ylabel(r'$\tilde{\vartheta}$', fontsize=20)
         ax10.set_xlabel(r'$Log(a)$', fontsize=15)
         ax10.legend(loc = 'best', fontsize = 'xx-large')
