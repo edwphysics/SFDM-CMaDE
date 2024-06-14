@@ -31,10 +31,10 @@ class DarkM:
         self.b_0    = 0.04      # x5:  b Baryons
         self.OmDE_0 = 0.73      # x6:  l Lambda
 
-        self.h0     = 0.0       # x8:   h Metric Contiunity
-        self.dh0    = 0.0       # x9:  h' Diff. Metric Contiunity
-        self.nu0    = 0.0       # x10: nu Pert. Oscillation
-        self.alpha0 = 0.0       # x11:  a Pert. Supression
+        self.h0     = 0.        # x8:   h Metric Contiunity
+        self.dh0    = 0.        # x9:  h' Diff. Metric Contiunity
+        self.nu0    = 0.        # x10: th Pert. Oscillation
+        self.alpha0 = 0.        # x11:  a Pert. Supression
 
         # Scale factor range
         self.NP = 1000000
@@ -134,7 +134,7 @@ class DarkM:
 
                         # Perturbations
                         x9,
-                        (1.5* Pe - 2.)* x9 - 6.* x2* np.exp(x11)* np.sin(x1/2.)* np.cos((x1 - x10)/2.),
+                        (1.5* Pe - 2.)* x9 + 6.* x2* np.exp(x11)* np.sin(x1/2.)* np.cos((x1 - x10)/2.),
                         -3.* (np.sin(x1) + np.sin(x1 - x10)) - w* (1 - np.cos(x1 - x10)) + np.exp(-x11)* x9* (np.cos(x10/2.) - np.cos(x1 - x10/2.)),
                         -(3/2.)* (np.cos(x1 - x10) + np.cos(x1)) - w* np.sin(x1 - x10)/2. + np.exp(-x11)* x9* (np.sin(x10/2.) + np.sin(x1 - x10/2.))/2.
                         ])
