@@ -34,93 +34,91 @@ class DarkM:
         self.h0     = 0.        # x8:   h Metric Contiunity
         self.dh0    = 0.        # x9:  h' Diff. Metric Contiunity
         self.nu0    = 0.        # x10: th Pert. Oscillation
-        self.alpha0 = 0.        # x11:  a Pert. Supression
+        self.alpha0 = 0.        # x11:  a Pert. Amplitude
 
         # Scale factor range
-        self.NP = 1000000
+        self.NP = 100000
         self.Ni = np.log(1.e-0)
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
         self.t  = [self.Ni + self.d* i for i in np.arange(self.NP)]
 
+        # Background Results
+        self.BGND = self.solver_bg()
+
     # Runge-Kutta 4 initialices the method ABM4
-    def rk4(self, func, y_0, t):
+    def rk4(self, func, y_0, t, z):
         y = np.zeros([4, len(y_0)])
         y[0] = y_0
 
         for i, t_i in enumerate(t[:3]):
 
             h = self.d 
-            k_1 = func(t_i, y[i])
-            k_2 = func(t_i + h/2., y[i] + h/2.* k_1)
-            k_3 = func(t_i + h/2., y[i] + h/2.* k_2)
-            k_4 = func(t_i + h, y[i] + h* k_3)
+            k_1 = func(t_i, y[i], z[i])
+            k_2 = func(t_i + h/2., y[i] + h/2.* k_1, z[i])
+            k_3 = func(t_i + h/2., y[i] + h/2.* k_2, z[i])
+            k_4 = func(t_i + h, y[i] + h* k_3, z[i])
 
             y[i+1] = y[i] + h/6.* (k_1 + 2.* k_2 + 2.* k_3 + k_4) # RK4 step
 
         return y
 
     # Adams-Bashforth 4/Moulton 4 Step Predictor/Corrector
-    def ABM4(self, func, y_0, t):
+    def ABM4(self, func, y_0, t, z):
         y = np.zeros([len(t), len(y_0)])
         
         # First 4 steps found w/ RK4 
-        y[0:4] = self.rk4(func, y_0, t)
-        k_1 = func(t[2], y[2])
-        k_2 = func(t[1], y[1])
-        k_3 = func(t[0], y[0])
+        y[0:4] = self.rk4(func, y_0, t, z)
+        k_1 = func(t[2], y[2], z[2])
+        k_2 = func(t[1], y[1], z[1])
+        k_3 = func(t[0], y[0], z[0])
 
-        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "ALPHA", "VARTH"))
+        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "ANG", "AMP"))
 
         for i in range(3, self.NP - 1):
 
-            # Prints N, F, and Omega SFDM
-            if i % 50000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2, y[i,10], y[i,9]))
+            # Prints N, F, and Ang-Mod Variables
+            if i % 50000 == 0 and func == self.RHS_bg:
+                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2, y[i,0], y[i,1]))
+            elif i % 50000 == 0 and func == self.RHS_pb:
+                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], z[i,1] + z[i,2]**2 + z[i,3]**2 + z[i,4]**2 + z[i,5]**2, y[i,2], y[i,3]))
 
             h   = self.d
             k_4 = k_3
             k_3 = k_2
             k_2 = k_1
-            k_1 = func(t[i], y[i])
+            k_1 = func(t[i], y[i], z[i])
             #Adams-Bashforth predictor
             y[i+1] = y[i] + h* (55.* k_1 - 59.* k_2 + 37.* k_3 - 9.* k_4)/24.
-            k_0    = func(t[i+1], y[i+1])
+            k_0    = func(t[i+1], y[i+1], z[i+1])
             #Adams-Moulton corrector
             y[i+1] = y[i] + h* (9.* k_0 + 19.* k_1 - 5.* k_2 + k_3)/24.
 
         return y
 
-    # Initial conditions from today comsological observations
-    def solver(self):
+    # Initial conditions from today cosmological observations
+    def solver_bg(self):
         y0 = np.array([np.sqrt(self.Th_0),       
                        self.OmDM_0,           
                        np.sqrt(self.z_0),  
                        np.sqrt(self.nu_0),  
                        np.sqrt(self.b_0),     
                        np.sqrt(self.OmDE_0),     
-                       self.y1_0,
-                       self.h0,
-                       self.dh0,
-                       self.nu0,
-                       self.alpha0])        
+                       self.y1_0
+                       ])        
 
         # Solve the SoE with the ABM4 or RK4 algorithms
-        y_result = self.ABM4(self.RHS, y0, self.t)
+        y_result = self.ABM4(self.RHS_bg, y0, self.t, np.zeros(self.NP))
         #y_result = self.rk4(self.RHS, y0, self.t)
 
         return y_result
 
-    # System of Equations
-    def RHS(self, t, y):
-        x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11 = y
+    # System of Equations: Background
+    def RHS_bg(self, t, y, z):
+        x1, x2, x3, x4, x5, x6, x7 = y
 
         CTer = 4./3.
-        kc   = 1.
-        Q    = 1.
         Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2
-        km   = self.km 
-        w    = km**2* x7* np.exp(-2*t)/2.
 
         return np.array([
                         # Background
@@ -130,8 +128,33 @@ class DarkM:
                         1.5* x4* (Pe - CTer),
                         1.5* x5* (Pe - 1.),
                         1.5* x6* Pe,
-                        1.5* Pe* x7,
+                        1.5* x7* Pe
+                        ])
 
+    # Initial conditions from VERIFY
+    def solver_pb(self):
+        y0 = np.array([self.h0,
+                       self.dh0,
+                       self.nu0,
+                       self.alpha0])        
+
+        # Solve the SoE with the ABM4 or RK4 algorithms
+        y_result = self.ABM4(self.RHS_pb, y0, self.t[::-1], self.BGND[::-1])
+        #y_result = self.rk4(self.RHS, y0, self.t)
+
+        return y_result
+
+    # System of Equations: Perturbations
+    def RHS_pb(self, t, y, z):
+        x8, x9, x10, x11 = y
+        x1, x2, x3, x4, x5, x6, x7 = z
+
+        CTer = 4./3.
+        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2
+        km   = self.km 
+        w    = km**2* x7* np.exp(-2*t)/2.
+
+        return np.array([
                         # Perturbations
                         x9,
                         (1.5* Pe - 2.)* x9 + 6.* x2* np.exp(x11)* np.sin(x1/2.)* np.cos((x1 - x10)/2.),
@@ -141,32 +164,32 @@ class DarkM:
 
     # Plotting Function
     def plot(self):
-        #En este arreglo se guardan los resultados de la funcion solver. Las variables se acomodan como en la funcion RHS.
-        z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11 = self.solver().T
-        #x, u, z, nu, l, s, b = self.solver().T
+        # Save the BG and PB results as lists
+        z1, z2, z3, z4, z5, z6, z7 = self.BGND.T
+        z8, z9, z10, z11 = self.solver_pb().T
 
-        fig3 = plt.figure(figsize=(9,10))
-        ax3  = fig3.add_subplot(111)
+        fig3 = plt.figure(figsize=(9,10))   
+        ax3  = fig3.add_subplot(111)         
 
-        fig2 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax2  = fig2.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig2 = plt.figure(figsize=(9,10)) 
+        ax2  = fig2.add_subplot(111)       
 
-        fig8 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax8  = fig8.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig8 = plt.figure(figsize=(9,10)) 
+        ax8  = fig8.add_subplot(111)       
 
-        fig9 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax9  = fig9.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig9 = plt.figure(figsize=(9,10)) 
+        ax9  = fig9.add_subplot(111)       
 
-        fig10 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax10  = fig10.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig10 = plt.figure(figsize=(9,10)) 
+        ax10  = fig10.add_subplot(111)       
 
-        fig11 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax11  = fig11.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig11 = plt.figure(figsize=(9,10)) 
+        ax11  = fig11.add_subplot(111)       
 
         i = 0
         tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = w8 = w9 = w10 = w11 = np.array([])
 
-        for t, aux1, aux2, aux3, aux4, aux5, aux6, aux7, aux8, aux9, aux10, aux11  in zip(self.t, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11):
+        for t, aux1, aux2, aux3, aux4, aux5, aux6, aux7, aux8, aux9, aux10, aux11  in zip(self.t, z1, z2, z3, z4, z5, z6, z7, z8[::-1], z9[::-1], z10[::-1], z11[::-1]):
             #Resolucion de las graficas
             if i % 200 == 0:
                tiempo = np.append(tiempo, np.exp(t))  # Scale factor from e-folding N
@@ -220,7 +243,7 @@ class DarkM:
         #plt.show()
 
         # Angle Difference 
-        ax10.plot(np.log(tiempo), w10, 'black', label=r"$\tilde{\vartheta}$")
+        ax10.plot(np.log10(tiempo), w10, 'black', label=r"$\tilde{\vartheta}$")
         ax10.set_ylabel(r'$\tilde{\vartheta}$', fontsize=20)
         ax10.set_xlabel(r'$Log(a)$', fontsize=15)
         ax10.legend(loc = 'best', fontsize = 'xx-large')
@@ -228,7 +251,7 @@ class DarkM:
         #plt.show()
 
         # Perturbation Amplitude 
-        ax11.plot(np.log(tiempo), w11, 'black', label=r"$\alpha$")
+        ax11.plot(np.log10(tiempo), w11, 'black', label=r"$\alpha$")
         ax11.set_ylabel(r'$\alpha$', fontsize=20)
         ax11.set_xlabel(r'$Log(a)$', fontsize=15)
         ax11.legend(loc = 'best', fontsize = 'xx-large')
