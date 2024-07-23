@@ -25,7 +25,6 @@ class DarkM:
         # CMaDE Constants
         self.kc    = 0.42
         self.Q     = -0.43
-        self.rs    = 0.2
 
         # Initial Conditions
         self.Th_0   = np.pi/2.  # x1: Th Theta - to avoid Cot(0/2.)
@@ -70,14 +69,14 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_LS"))
+        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "THETA"))
 
         for i in range(3, self.NP - 1):
 
             # Prints N, F, and Omega SFDM
-            if i % 5000 == 0:
+            if i % 50000 == 0:
                 k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
-                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + y[i,7]**2 + k_Term, y[i,7]))
+                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term, y[i,0]))
 
             h   = self.d
             k_4 = k_3
@@ -100,8 +99,7 @@ class DarkM:
                        np.sqrt(self.nu_0),  
                        np.sqrt(self.b_0),     
                        np.sqrt(self.OmDE_0),     
-                       self.y1_0,
-                       1.e-10])
+                       self.y1_0])
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -111,26 +109,23 @@ class DarkM:
 
     # System of Equations
     def RHS(self, t, y):
-        x1, x2, x3, x4, x5, x6, x7, x8 = y
+        x1, x2, x3, x4, x5, x6, x7 = y
 
         # Parameters
         CTer = 4/3.
         kc   = self.kc
         Q    = self.Q
-        rs   = self.rs
 
         # CMaDE Factors
         CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
-        SF   = (rs/np.pi)* np.sqrt(3/2.)* np.exp(-t)
         gamm = CMF* (kc/x2)* x6**3
 
         # Contributions 
         k_Term     = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
-        SF_Term    = -(2/3.)* SF* x8**3
         CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**3
 
         # Hubble Parameter Evolution 
-        Pe = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + SF_Term + CMaDE_Term
+        Pe = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + CMaDE_Term
 
         return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
                          3.* (Pe - 1. + np.cos(x1))* x2 - 2* gamm* x2,
@@ -138,13 +133,12 @@ class DarkM:
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
                          1.5* x6* Pe + CMF* x6**2,
-                         1.5* x7* Pe,
-                         1.5* x8* Pe + SF* x8**2])
+                         1.5* x7* Pe])
 
     # Plotting Function
     def plot(self):
         #En este arreglo se guardan los resultados de la funcion solver. Las variables se acomodan como en la funcion RHS.
-        z1, z2, z3, z4, z5, z6, z7, z8 = self.solver().T
+        z1, z2, z3, z4, z5, z6, z7 = self.solver().T
         #x, u, z, nu, l, s, b = self.solver().T
 
         fig3 = plt.figure(figsize=(9,10))
@@ -160,9 +154,9 @@ class DarkM:
         ax9  = fig9.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
 
         i = 0
-        tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = w8 = np.array([])
+        tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = np.array([])
 
-        for t, aux1, aux2, aux3, aux4, aux5, aux6, aux7, aux8  in zip(self.t, z1, z2, z3, z4, z5, z6, z7, z8):
+        for t, aux1, aux2, aux3, aux4, aux5, aux6, aux7  in zip(self.t, z1, z2, z3, z4, z5, z6, z7):
             #Resolucion de las graficas
             if i % 200 == 0:
                tiempo = np.append(tiempo, np.exp(t))  # Scale factor from e-folding N
@@ -173,8 +167,11 @@ class DarkM:
                w5 = np.append(w5, aux5)
                w6 = np.append(w6, aux6)
                w7 = np.append(w7, aux7)
-               w8 = np.append(w8, aux8)
             i += 1
+
+        # Saving Results
+        data = np.column_stack((tiempo, w1, w2, w3, w4, w5, w6, w7))
+        np.savetxt("data.dat", data)
 
         # Background Scalar Field
         ax2.semilogx(tiempo, -2* np.sqrt(6.)* np.sqrt(w2)* np.cos(w1/2.)/w7, 'black', label=r"$\kappa\Phi_0$")
@@ -189,7 +186,7 @@ class DarkM:
         ax3.semilogx(tiempo, w3**2, 'blue', label=r"$\Omega_{\gamma}$")     # Radiation
         ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{v}$")        # Neutrinos
         ax3.semilogx(tiempo, w5**2, 'red', label=r"$\Omega_b$")             # Baryons
-        ax3.semilogx(tiempo, w6**2 + w8**2, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
+        ax3.semilogx(tiempo, w6**2, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
         ax3.set_ylabel(r'$\Omega(a)$', fontsize=20)                         
         ax3.set_xlabel(r'$a$', fontsize=15)
         ax3.legend(loc = 'best', fontsize = 'xx-large')
@@ -198,7 +195,7 @@ class DarkM:
 
         # Friedmann Restriction
         k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
-        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + w8**2 + k_Term, 'black', label=r"$F$")
+        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + k_Term, 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
