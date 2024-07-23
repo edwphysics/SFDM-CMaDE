@@ -28,10 +28,11 @@ class DarkM:
         self.z_0    = 0.00004   # x3:  z Radiation 
         self.nu_0   = 0.00002   # x4: nu Neutrinos 
         self.b_0    = 0.04      # x5:  b Baryons
-        self.OmDE_0 = 0.73      # x6:  l Lambda
+        self.OmDE_0 = 0.729     # x6:  l Lambda
+        self.Omk_0  = 0.001     # Curvature
 
         # Scale factor range
-        self.NP = 10000000
+        self.NP = 1000000
         self.Ni = np.log(1.e-0)
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
@@ -70,7 +71,8 @@ class DarkM:
 
             # Prints N, F, and Omega SFDM
             if i % 50000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + np.sum(np.square(np.array(y[i,2:-1]))), y[i,1], y[i,0]))
+                k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i])
+                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term, y[i,1], y[i,0]))
 
             h   = self.d
             k_4 = k_3
@@ -105,10 +107,11 @@ class DarkM:
     def RHS(self, t, y):
         x1, x2, x3, x4, x5, x6, x7 = y
 
-        CTer = 4./3.
-        kc   = 1.
-        Q    = 1.
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2
+        CTer   = 4./3.
+        kc     = 1.
+        Q      = 1.
+        k_Term = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
+        Pe     = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term
 
         return np.array([-3* np.sin(x1) + x7,
                          3* (Pe - 1. + np.cos(x1))* x2,
@@ -152,6 +155,10 @@ class DarkM:
                w7 = np.append(w7, aux7)
             i += 1
 
+        # Saving Results
+        data = np.column_stack((tiempo, w1, w2, w3, w4, w5, w6, w7))
+        np.savetxt("data.dat", data)
+
         # Background Scalar Field
         ax2.semilogx(tiempo, -2* np.sqrt(6.)* np.sqrt(w2)* np.cos(w1/2.)/w7, 'black', label=r"$\kappa\Phi_0$")
         ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20)
@@ -160,7 +167,7 @@ class DarkM:
         fig2.savefig('Phi0.pdf')
         #plt.show()
 
-        #Dark Matter
+        # Density Parameter
         ax3.semilogx(tiempo, w2, 'black', label=r"$\Omega_{SFDM}$")
         ax3.semilogx(tiempo, w3**2, 'blue', label=r"$\Omega_{\gamma}$")     #radiation
         ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{v}$")        #neutrinos
@@ -173,7 +180,8 @@ class DarkM:
         #plt.show()        
 
         # Friedmann Restriction
-        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2, 'black', label=r"$F$")
+        k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
+        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + k_Term, 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
