@@ -23,13 +23,15 @@ class DarkM:
         self.y1_0 = 2.* self.mass/self.H0   # Mass to Hubble Ratio
 
         # Initial Conditions
-        self.Th_0   = 0.        # x1: Th Theta 
         self.OmDM_0 = 0.22994   # x2: Om Omega_DM
         self.z_0    = 0.00004   # x3:  z Radiation 
         self.nu_0   = 0.00002   # x4: nu Neutrinos 
         self.b_0    = 0.04      # x5:  b Baryons
         self.OmDE_0 = 0.729     # x6:  l Lambda
         self.Omk_0  = 0.001     # Curvature
+
+        # x1: Th Theta - From Eq. 2.16 Ureña-Gonzalez
+        self.Th_0   = self.y1_0/ (5.* np.sqrt(self.nu_0 + self.z_0))  
 
         # Scale factor range
         self.NP = 1000000
@@ -89,7 +91,7 @@ class DarkM:
 
     # Initial conditions from today comsological observations
     def solver(self):
-        y0 = np.array([np.sqrt(self.Th_0),       
+        y0 = np.array([self.Th_0,       
                        self.OmDM_0,           
                        np.sqrt(self.z_0),  
                        np.sqrt(self.nu_0),  
