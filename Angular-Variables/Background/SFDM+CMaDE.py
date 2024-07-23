@@ -23,11 +23,10 @@ class DarkM:
         self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
         # CMaDE Constants
-        self.kc    = 0.42
-        self.Q     = -0.43
+        self.kc = 0.42
+        self.Q  = -0.43
 
         # Initial Conditions
-        self.Th_0   = np.pi/2.  # x1: Th Theta - to avoid Cot(0/2.)
         self.OmDM_0 = 0.22994   # x2: Om Omega_DM
         self.z_0    = 0.00004   # x3:  z Radiation 
         self.nu_0   = 0.00002   # x4: nu Neutrinos 
@@ -35,8 +34,11 @@ class DarkM:
         self.OmDE_0 = 0.729     # x6:  l Lambda
         self.Omk_0  = 0.001     # Curvature
 
+        # x1: Th Theta - From Eq. 2.16 Ureña-Gonzalez
+        self.Th_0   = self.y1_0/ (5.* np.sqrt(self.nu_0 + self.z_0))   
+
         # Scale factor range
-        self.NP = 100000
+        self.NP = 1000000
         self.Ni = np.log(1.e-0)
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
