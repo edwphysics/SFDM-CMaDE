@@ -18,7 +18,7 @@ class DarkM:
     def __init__(self):
 
         # Scalar Field Constants
-        self.mass = 1.e-22                  # Scalar field mass in eV
+        self.mass = 1.e-20                  # Scalar field mass in eV
         self.H0   = 1.49e-33                # Hubble parameter in eV
         self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
@@ -27,12 +27,12 @@ class DarkM:
         self.Q  = -0.43
 
         # Initial Conditions
-        self.OmDM_0 = 0.22994   # x2: Om Omega_DM
-        self.z_0    = 0.00004   # x3:  z Radiation 
-        self.nu_0   = 0.00002   # x4: nu Neutrinos 
-        self.b_0    = 0.04      # x5:  b Baryons
-        self.OmDE_0 = 0.729     # x6:  l Lambda
-        self.Omk_0  = 0.001     # Curvature
+        self.OmDM_0 = 0.27   # x2: Om Omega_DM
+        self.z_0    = 0.00005539   # x3:  z Radiation 
+        self.nu_0   = 0.00004   # x4: nu Neutrinos 
+        self.b_0    = 0.044      # x5:  b Baryons
+        self.OmDE_0 = 0.605905     # x6:  l Lambda
+        self.Omk_0  = 0.08     # Curvature
 
         # x1: Th Theta - From Eq. 2.16 Ureña-Gonzalez
         self.Th_0   = self.y1_0/ (5.* np.sqrt(self.nu_0 + self.z_0))   

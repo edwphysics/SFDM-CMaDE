@@ -10,8 +10,6 @@ Modified from the original code by Luis Osvaldo Tellez Tovar for the paper "The 
 '''
 
 import numpy as np
-from scipy.integrate import odeint
-from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import math
 import time
@@ -21,7 +19,10 @@ class DarkM:
 
         self.mass = 1.e-22 # Scalar field mass in eV
         self.H0   = 1.49e-33 # Hubble parameter in eV
-        self.s    = self.mass/self.H0
+        self.y1_0 = self.mass/self.H0
+
+        # Curvature
+        self.Omk_0  = 0.001     
 
         # Scale factor range
         self.NP = 100000
@@ -63,7 +64,8 @@ class DarkM:
 
             # Prints N, F, and Omega SFDM
             if i % 50000 == 0:
-                print("{:<10}\t{:<10}\t{:<10}".format(t[i], np.sum(np.square(np.array(y[i,:-1]))), np.sum(np.square(np.array(y[i,:2])))))
+                k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
+                print("{:<10}\t{:<10}\t{:<10}".format(t[i], np.sum(np.square(np.array(y[i,:-1]))) + k_Term, np.sum(np.square(np.array(y[i,:2])))))
 
             h   = self.d
             k_4 = k_3
@@ -85,7 +87,7 @@ class DarkM:
                        np.sqrt(0.00004),  # z: x4 Radiation
                        np.sqrt(0.00002),  # n: x5 Neutrinos
                        np.sqrt(0.04),     # b: x6 Baryons
-                       np.sqrt(0.73),     # l: x7 Lambda
+                       np.sqrt(0.729),    # l: x7 Lambda
                        1.e3])             # s: x8 Spurious Variable
 
         # Solve the SoE with the ABM4 or RK4 algorithms
@@ -99,16 +101,19 @@ class DarkM:
         x0, x2, x4, x5, x6, x7, x8 = y
 
         CTer = 4./3.
-        kc   = 1.
-        Q    = 1.
-        Pe   = 2.* x0**2 + CTer* x4**2 + CTer* x5**2 + x6**2# + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x7**3* np.exp(-t)
+        kc   = 0.42
+        Q    = -0.43
 
-        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe,# - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
+        # Contributions 
+        k_Term = (2/3.)* self.Omk_0* (x8/self.y1_0)**2* np.exp(-2* t)
+        Pe     = 2.* x0**2 + CTer* x4**2 + CTer* x5**2 + x6**2 + k_Term + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x7**3* np.exp(-t)
+
+        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
                          x0* x8 + 1.5* x2* Pe,
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - CTer),
                          1.5* x6* (Pe - 1.),
-                         1.5* x7* Pe,# + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
+                         1.5* x7* Pe + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
                          -1.5* x8**(-2)])
                          #1.5* Pe* x8])
 
@@ -146,6 +151,10 @@ class DarkM:
                w8 = np.append(w8, aux8)
             i += 1
 
+        # Saving Results
+        data = np.column_stack((tiempo, w0, w2, w4, w5, w6, w7, w8))
+        np.savetxt("data.dat", data)
+
         # Background Scalar Field
         ax2.semilogx(tiempo, np.sqrt(6.)* w2/w8, 'black', label=r"$\kappa\Phi_0$")
         ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20)
@@ -167,7 +176,8 @@ class DarkM:
         #plt.show()        
 
         # Friedmann Restriction
-        ax9.semilogx(tiempo, w0**2 + w2**2 + w4**2 + w5**2 + w6**2 + w7**2, 'black', label=r"$F$")
+        k_Term = self.Omk_0* (w8/self.y1_0)**2* np.exp(-2* np.log(tiempo))
+        ax9.semilogx(tiempo, w0**2 + w2**2 + w4**2 + w5**2 + w6**2 + w7**2 + k_Term, 'black', label=r"$F$")
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
