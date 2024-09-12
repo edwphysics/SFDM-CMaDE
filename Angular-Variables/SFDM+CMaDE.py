@@ -76,7 +76,7 @@ class DarkM:
         for i in range(3, self.NP - 1):
 
             # Prints N and F
-            if i % 10000 == 0:
+            if i % (self.NP/10) == 0:
                 k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
                 print("{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term))
 
@@ -105,7 +105,6 @@ class DarkM:
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
-        #y_result = self.rk4(self.RHS, y0, self.t)
 
         return y_result
 

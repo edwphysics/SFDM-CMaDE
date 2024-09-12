@@ -23,13 +23,20 @@ class DarkM:
         self.y1_0 = 2.* self.mass/self.H0   # Mass to Hubble Ratio
         self.km   = 1.e-12                  # Wavenumber to Mass Ratio
 
+        # CMaDE Constants
+        self.kc = 0.42
+        self.Q  = -0.43
+
         # Initial Conditions
-        self.Th_0   = 0.        # x1: Th Theta 
-        self.OmDM_0 = 0.22994   # x2: Om Omega_DM
-        self.Omz_0  = 0.00004   # x3:  z Radiation 
-        self.Omnu_0 = 0.00002   # x4: nu Neutrinos 
-        self.Omb_0  = 0.04      # x5:  b Baryons
-        self.OmDE_0 = 0.73      # x6:  l Lambda
+        self.OmDM_0 = 0.27         # x2: Om Omega_DM
+        self.Omz_0  = 0.00005539   # x3:  z Radiation 
+        self.Omnu_0 = 0.00004      # x4: nu Neutrinos 
+        self.Omb_0  = 0.044        # x5:  b Baryons
+        self.OmDE_0 = 0.605905     # x6:  l Lambda
+        self.Omk_0  = 0.08         # Curvature
+
+        # x1: Th Theta - From Eq. 2.16 Ureña-Gonzalez
+        self.Th_0   = self.y1_0/ (5.* np.sqrt(self.Omnu_0 + self.Omz_0))  
 
         self.h0     = 0.        # x8:   h Metric Contiunity
         self.dh0    = 0.        # x9:  h' Diff. Metric Contiunity
@@ -73,15 +80,16 @@ class DarkM:
         k_2 = func(t[1], y[1], z[1])
         k_3 = func(t[0], y[0], z[0])
 
-        print("{:<20}\t{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "ANG", "AMP"))
+        print("{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN"))
 
         for i in range(3, self.NP - 1):
 
-            # Prints N, F, and Ang-Mod Variables
-            if i % 50000 == 0 and func == self.RHS_bg:
-                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2, y[i,0], y[i,1]))
-            elif i % 50000 == 0 and func == self.RHS_pb:
-                print("{:<10}\t{:<10}\t{:<10}\t{:<10}".format(t[i], z[i,1] + z[i,2]**2 + z[i,3]**2 + z[i,4]**2 + z[i,5]**2, y[i,2], y[i,3]))
+            # Prints N and F
+            if i % (self.NP/10) == 0 and func == self.RHS_bg:
+                k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
+                print("{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term))
+            elif i % (self.NP/10) == 0 and func == self.RHS_pb:
+                print("{:<10}".format(t[i]))
 
             h   = self.d
             k_4 = k_3
@@ -100,9 +108,9 @@ class DarkM:
     def solver_bg(self):
         y0 = np.array([self.Th_0,       
                        self.OmDM_0,           
-                       np.sqrt(self.z_0),  
-                       np.sqrt(self.nu_0),  
-                       np.sqrt(self.b_0),     
+                       np.sqrt(self.Omz_0),  
+                       np.sqrt(self.Omnu_0),  
+                       np.sqrt(self.Omb_0),     
                        np.sqrt(self.OmDE_0),     
                        self.y1_0
                        ])        
@@ -117,19 +125,28 @@ class DarkM:
     def RHS_bg(self, t, y, z):
         x1, x2, x3, x4, x5, x6, x7 = y
 
-        CTer = 4./3.
-        Pe   = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2
+        # Parameters
+        kc   = self.kc
+        Q    = self.Q
 
-        return np.array([
-                        # Background
-                        -3* np.sin(x1) + x7,
-                        3* (Pe - 1. + np.cos(x1))* x2,
-                        1.5* x3* (Pe - CTer),
-                        1.5* x4* (Pe - CTer),
-                        1.5* x5* (Pe - 1.),
-                        1.5* x6* Pe,
-                        1.5* x7* Pe
-                        ])
+        # CMaDE Factors
+        CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
+        gamm = CMF* (kc/x2)* x6**3
+
+        # Contributions 
+        k_Term     = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
+        CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**3
+
+        # Hubble Parameter Evolution 
+        Pe = 2.* x2* np.sin(x1/2.)**2 + (4/3.)* x3**2 + (4/3.)* x4**2 + x5**2 + k_Term + CMaDE_Term
+
+        return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
+                         3.* (Pe - 1. + np.cos(x1))* x2 - 2* gamm* x2,
+                         1.5* x3* (Pe - 4/3.),
+                         1.5* x4* (Pe - 4/3.),
+                         1.5* x5* (Pe - 1.),
+                         1.5* x6* Pe + CMF* x6**2,
+                         1.5* x7* Pe])
 
     # Initial conditions from VERIFY
     def solver_pb(self):
