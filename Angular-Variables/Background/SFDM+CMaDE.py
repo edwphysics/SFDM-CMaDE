@@ -23,8 +23,9 @@ class DarkM:
         self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
         # CMaDE Constants
-        self.kc = 0.42
-        self.Q  = -0.43
+        # Equal them to zero to turn off CMaDE
+        self.kc = 0.
+        self.Q  = 0.
 
         # Initial Conditions
         self.OmDM_0 = 0.27   # x2: Om Omega_DM
@@ -71,14 +72,14 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "THETA"))
+        print("{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN"))
 
         for i in range(3, self.NP - 1):
 
-            # Prints N, F, and Omega SFDM
-            if i % 50000 == 0:
+            # Prints N and F
+            if i % (self.NP/10) == 0:
                 k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
-                print("{:<10}\t{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term, y[i,0]))
+                print("{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term))
 
             h   = self.d
             k_4 = k_3
