@@ -41,9 +41,9 @@ class DarkM:
         # x6: CMaDE Variable -- Friedmann Restriction  
         self.OmDE_0 = 1. - self.Omk_0 - self.OmDM_0 - self.Omz_0 - self.Omnu_0 - self.Omb_0 
 
-        # x1: Th Theta -- From Eq. 2.16 Ureña-Gonzalez
-        # self.Th_0   = self.y1_0/ (5.* np.sqrt(self.Omnu_0 + self.Omz_0))   
-        self.Th_0 = 1.e10
+        # x1: Th Theta -- From Eq. 2.14 Ureña-Gonzalez
+        t0 = 6.60996e32 # Age of the Universe
+        self.Th_0   = 2.* self.mass* t0
 
         # Scale factor range
         self.NP = 1000000
