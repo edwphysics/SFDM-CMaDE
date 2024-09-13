@@ -1,11 +1,15 @@
 '''
 
-Scalar Field Dark Matter and Compton Mass Dark Energy with the Alma-Ureña (2016) system of equations.
+Scalar Field Dark Matter and Compton Mass Dark Energy model (CMaDE+SFDM) 
+Simulation with the Ureña--Gonzalez (2016) Decomposition Method for the SFDM system.
+Numerical Method: ABM4 Fourth-Order Adams-Bashford Predictor Adams-Moulton Corrector  
 
-Solution of the SFDM + CMaDE model equations. 
-The density parameters of the components of the universe are calculated solving the dynamical equations using the ABMM4 method.
+Modified from the original code by Luis Osvaldo Tellez Tovar 
+Written for the paper "The quantum character of the Scalar Field Dark Matter" by Tonatiuh Matos
 
-Modified from the original code by Luis Osvaldo Tellez Tovar for the paper "The quantum character of the Scalar Field Dark Matter" by Tonatiuh Matos
+Edwin Pérez
+MSc Student 
+Cinvestav
 
 '''
 
@@ -19,24 +23,27 @@ class DarkM:
 
         # Scalar Field Constants
         self.mass = 1.e-20                  # Scalar field mass in eV
-        self.H0   = 1.49e-33                # Hubble parameter in eV
+        self.H0   = 1.42919e-33             # Hubble constant in eV
         self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
         # CMaDE Constants
-        # Equal them to zero to turn off CMaDE
-        self.kc = 0.
-        self.Q  = 0.
+        # Turn off CMaDE with kc = Q = 0
+        self.kc = 0.42
+        self.Q  = -0.43
 
         # Initial Conditions
-        self.OmDM_0 = 0.27   # x2: Om Omega_DM
-        self.z_0    = 0.00005539   # x3:  z Radiation 
-        self.nu_0   = 0.00004   # x4: nu Neutrinos 
-        self.b_0    = 0.044      # x5:  b Baryons
-        self.OmDE_0 = 0.605905     # x6:  l Lambda
-        self.Omk_0  = 0.08     # Curvature
+        self.OmDM_0 = 0.2501       # x2: Om Omega_DM
+        self.Omz_0  = 5.50234e-5   # x3:  z Radiation 
+        self.Omnu_0 = 3.74248e-5   # x4: nu Neutrinos 
+        self.Omb_0  = 0.0498998    # x5:  b Baryons
+        self.Omk_0  = 0.001        # Curvature
 
-        # x1: Th Theta - From Eq. 2.16 Ureña-Gonzalez
-        self.Th_0   = self.y1_0/ (5.* np.sqrt(self.nu_0 + self.z_0))   
+        # x6: CMaDE Variable -- Friedmann Restriction  
+        self.OmDE_0 = 1. - self.Omk_0 - self.OmDM_0 - self.Omz_0 - self.Omnu_0 - self.Omb_0 
+
+        # x1: Th Theta -- From Eq. 2.16 Ureña-Gonzalez
+        # self.Th_0   = self.y1_0/ (5.* np.sqrt(self.Omnu_0 + self.Omz_0))   
+        self.Th_0 = 1.e10
 
         # Scale factor range
         self.NP = 1000000
@@ -98,9 +105,9 @@ class DarkM:
     def solver(self):
         y0 = np.array([self.Th_0,       
                        self.OmDM_0,           
-                       np.sqrt(self.z_0),  
-                       np.sqrt(self.nu_0),  
-                       np.sqrt(self.b_0),     
+                       np.sqrt(self.Omz_0),  
+                       np.sqrt(self.Omnu_0),  
+                       np.sqrt(self.Omb_0),     
                        np.sqrt(self.OmDE_0),     
                        self.y1_0])
 
