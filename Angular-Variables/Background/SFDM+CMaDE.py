@@ -151,17 +151,20 @@ class DarkM:
         z1, z2, z3, z4, z5, z6, z7 = self.solver().T
         #x, u, z, nu, l, s, b = self.solver().T
 
-        fig3 = plt.figure(figsize=(9,10))
-        ax3  = fig3.add_subplot(111)
+        fig2 = plt.figure(figsize=(9,10)) # Define una nueva ventana
+        ax2  = fig2.add_subplot(111)      # La grafica correspondiente a la nueva ventana
 
-        fig2 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax2  = fig2.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig3 = plt.figure(figsize=(9,10)) 
+        ax3  = fig3.add_subplot(111)       
 
-        fig8 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax8  = fig8.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig4 = plt.figure(figsize=(9,10)) 
+        ax4  = fig4.add_subplot(111)
 
-        fig9 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax9  = fig9.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig8 = plt.figure(figsize=(9,10)) 
+        ax8  = fig8.add_subplot(111)      
+
+        fig9 = plt.figure(figsize=(9,10)) 
+        ax9  = fig9.add_subplot(111)      
 
         i = 0
         tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = np.array([])
@@ -201,7 +204,15 @@ class DarkM:
         ax3.set_xlabel(r'$a$', fontsize=15)
         ax3.legend(loc = 'best', fontsize = 'xx-large')
         fig3.savefig('Omegas.pdf')
-        #plt.show()        
+        #plt.show()       
+
+        # Effective EoS Parameter wphi
+        ax4.semilogx(tiempo, -np.cos(w1), 'black', label=r"$w_{\phi}$")
+        ax4.set_ylabel(r'$w_{\phi}(a)$', fontsize=20)
+        ax4.set_xlabel(r'$a$', fontsize=15)
+        ax4.legend(loc = 'best', fontsize = 'xx-large')
+        fig4.savefig('wphi.pdf')
+        #plt.show()
 
         # Friedmann Restriction
         k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
