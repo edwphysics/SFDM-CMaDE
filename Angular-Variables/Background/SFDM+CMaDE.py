@@ -46,7 +46,7 @@ class DarkM:
         self.Th_0   = 2.* self.mass* t0
 
         # Scale factor range
-        self.NP = 1000000
+        self.NP = 100000
         self.Ni = np.log(1.e-0)
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
@@ -151,19 +151,19 @@ class DarkM:
         z1, z2, z3, z4, z5, z6, z7 = self.solver().T
         #x, u, z, nu, l, s, b = self.solver().T
 
-        fig2 = plt.figure(figsize=(9,10)) # Define una nueva ventana
+        fig2 = plt.figure(figsize=(10,6)) # Define una nueva ventana
         ax2  = fig2.add_subplot(111)      # La grafica correspondiente a la nueva ventana
 
-        fig3 = plt.figure(figsize=(9,10)) 
+        fig3 = plt.figure(figsize=(10,6)) 
         ax3  = fig3.add_subplot(111)       
 
-        fig4 = plt.figure(figsize=(9,10)) 
+        fig4 = plt.figure(figsize=(10,6)) 
         ax4  = fig4.add_subplot(111)
 
-        fig8 = plt.figure(figsize=(9,10)) 
+        fig8 = plt.figure(figsize=(10,6)) 
         ax8  = fig8.add_subplot(111)      
 
-        fig9 = plt.figure(figsize=(9,10)) 
+        fig9 = plt.figure(figsize=(10,6)) 
         ax9  = fig9.add_subplot(111)      
 
         i = 0
