@@ -52,6 +52,9 @@ class DarkM:
         self.d  = (self.Nf - self.Ni)/ self.NP
         self.t  = [self.Ni + self.d* i for i in np.arange(self.NP)]
 
+        # Plots saved at...
+        self.directory = '../../../Report/mastersthesis/plots/SFDM+CMade-UGD/'
+
     # Runge-Kutta 4 initialices the method ABM4
     def rk4(self, func, y_0, t):
         y = np.zeros([4, len(y_0)])
@@ -191,7 +194,7 @@ class DarkM:
         ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20)
         ax2.set_xlabel(r'$a$', fontsize=15)
         ax2.legend(loc = 'best', fontsize = 'xx-large')
-        fig2.savefig('Phi0.pdf')
+        fig2.savefig(self.directory + "Phi0.pdf")
         #plt.show()
 
         #Dark Matter
@@ -211,7 +214,7 @@ class DarkM:
         ax4.set_ylabel(r'$w_{\phi}(a)$', fontsize=20)
         ax4.set_xlabel(r'$a$', fontsize=15)
         ax4.legend(loc = 'best', fontsize = 'xx-large')
-        fig4.savefig('wphi.pdf')
+        fig4.savefig(self.directory + 'wphi.pdf')
         #plt.show()
 
         # Friedmann Restriction
@@ -220,7 +223,7 @@ class DarkM:
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
         ax9.legend(loc = 'best', fontsize = 'xx-large')
-        fig9.savefig('F.pdf')
+        fig9.savefig(self.directory + 'F.pdf')
         #plt.show()
 
         # Spurious Variable
@@ -228,7 +231,7 @@ class DarkM:
         ax8.set_ylabel(r'$y1$', fontsize=20)
         ax8.set_xlabel(r'$a$', fontsize=15)
         ax8.legend(loc = 'best', fontsize = 'xx-large')
-        fig8.savefig('y1.pdf')
+        fig8.savefig(self.directory + 'y1.pdf')
         #plt.show()
 
 # Runs only if the script is self contained
