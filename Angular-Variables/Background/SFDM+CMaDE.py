@@ -206,7 +206,7 @@ class DarkM:
         ax3.set_ylabel(r'$\Omega(a)$', fontsize=20)                         
         ax3.set_xlabel(r'$a$', fontsize=15)
         ax3.legend(loc = 'best', fontsize = 'xx-large')
-        fig3.savefig('Omegas.pdf')
+        fig3.savefig(self.directory + 'Omegas.pdf')
         #plt.show()       
 
         # Effective EoS Parameter wphi
