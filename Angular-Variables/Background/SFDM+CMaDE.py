@@ -167,6 +167,9 @@ class DarkM:
         fig4 = plt.figure(figsize=(10,6)) 
         ax4  = fig4.add_subplot(111)
 
+        fig5 = plt.figure(figsize=(10,6)) 
+        ax5  = fig5.add_subplot(111)       
+
         fig8 = plt.figure(figsize=(10,6)) 
         ax8  = fig8.add_subplot(111)      
 
@@ -223,6 +226,13 @@ class DarkM:
         ax4.tick_params(axis='both', which='major', labelsize=18)
         fig4.savefig(self.directory + 'wphi.pdf')
         #plt.show()
+
+        # x1: Theta - Angular Variable
+        ax5.semilogx(tiempo, w1, 'black')
+        ax5.set_ylabel(r'$\theta(a)$', fontsize=20, fontweight='bold')
+        ax5.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        ax5.tick_params(axis='both', which='major', labelsize=18)
+        fig5.savefig(self.directory + 'theta.pdf')
 
         # Friedmann Restriction
         k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
