@@ -195,9 +195,9 @@ class DarkM:
 
         # Background Scalar Field
         ax2.semilogx(tiempo, -2* np.sqrt(6.)* np.sqrt(w2)* np.cos(w1/2.)/w7, 'black')
-        ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=18, fontweight='bold')
-        ax2.set_xlabel(r'$a$', fontsize=18, fontweight='bold')
-        ax2.tick_params(axis='both', which='major', labelsize=12)
+        ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20, fontweight='bold')
+        ax2.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        ax2.tick_params(axis='both', which='major', labelsize=18)
         #ax2.legend(loc = 'best', fontsize = 'xx-large')
         fig2.savefig(self.directory + "Phi0.pdf")
         #plt.show()
@@ -208,19 +208,19 @@ class DarkM:
         ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{\nu}$")        # Neutrinos
         ax3.semilogx(tiempo, w5**2, 'red', label=r"$\Omega_b$")             # Baryons
         ax3.semilogx(tiempo, w6**2, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
-        ax3.set_ylabel(r'$\Omega(a)$', fontsize=18, fontweight='bold')                         
-        ax3.set_xlabel(r'$a$', fontsize=18, fontweight='bold')
-        ax3.tick_params(axis='both', which='major', labelsize=13)
+        ax3.set_ylabel(r'$\Omega(a)$', fontsize=20, fontweight='bold')                         
+        ax3.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        ax3.tick_params(axis='both', which='major', labelsize=18)
         ax3.legend(loc = 'upper left', fontsize = '12')
         fig3.savefig(self.directory + 'Omegas.pdf')
         #plt.show()       
 
         # Effective EoS Parameter wphi
         ax4.semilogx(tiempo, -np.cos(w1), 'black')
-        ax4.set_ylabel(r'$w_{\phi}(a)$', fontsize=18, fontweight='bold')
-        ax4.set_xlabel(r'$a$', fontsize=18, fontweight='bold')
+        ax4.set_ylabel(r'$w_{\phi}(a)$', fontsize=20, fontweight='bold')
+        ax4.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
         #ax4.legend(loc = 'best', fontsize = 'xx-large')
-        ax4.tick_params(axis='both', which='major', labelsize=13)
+        ax4.tick_params(axis='both', which='major', labelsize=18)
         fig4.savefig(self.directory + 'wphi.pdf')
         #plt.show()
 
@@ -229,16 +229,16 @@ class DarkM:
         ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + k_Term, 'black')
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=15)
-        ax9.tick_params(axis='both', which='major', labelsize=13)
+        ax9.tick_params(axis='both', which='major', labelsize=18)
         #ax9.legend(loc = 'best', fontsize = 'xx-large')
         fig9.savefig(self.directory + 'F.pdf')
         #plt.show()
 
         # Spurious Variable
         ax8.semilogx(tiempo, w7, 'black', label=r"$y1$")
-        ax8.set_ylabel(r'$y1(a)$', fontsize=18, fontweight='bold')
-        ax8.set_xlabel(r'$a$', fontsize=18, fontweight='bold')
-        ax8.tick_params(axis='both', which='major', labelsize=13)
+        ax8.set_ylabel(r'$y1(a)$', fontsize=20, fontweight='bold')
+        ax8.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        ax8.tick_params(axis='both', which='major', labelsize=18)
         #ax8.legend(loc = 'best', fontsize = 'xx-large')
         fig8.savefig(self.directory + 'y1.pdf')
         #plt.show()
