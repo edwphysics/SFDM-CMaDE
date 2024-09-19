@@ -1,11 +1,15 @@
 '''
 
-Compton Mass Dark Energy & Scalar Field Dark Matter.
+Scalar Field Dark Matter and Compton Mass Dark Energy model (CMaDE+SFDM) 
+Simulation with the Juan Magaña (2012) and Ureña--Gonzalez (2016) formalism for the SFDM system.
+Numerical Method: ABM4 Fourth-Order Adams-Bashford Predictor Adams-Moulton Corrector  
 
-Combination of the SFDM and CMaDE model equations. 
-Here, the density parameters of the components of the universe are calculated solving the dynamical equations using the ABMM4 method.
+Modified from the original code by Luis Osvaldo Tellez Tovar 
+Written for the paper "The quantum character of the Scalar Field Dark Matter" by Tonatiuh Matos
 
-Modified from the original code by Luis Osvaldo Tellez Tovar for the paper "The quantum character of the Scalar Field Dark Matter" by Tonatiuh Matos
+Edwin Pérez
+MSc Student 
+Cinvestav
 
 '''
 
@@ -14,15 +18,41 @@ import matplotlib.pyplot as plt
 import math
 import time
 
+# Enable LaTeX font rendering
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')  # Set font to LaTeX default serif
+
 class DarkM:
     def __init__(self):
 
-        self.mass = 1.e-22 # Scalar field mass in eV
-        self.H0   = 1.49e-33 # Hubble parameter in eV
-        self.y1_0 = self.mass/self.H0
+        # Scalar Field Constants
+        self.mass = 1.e-22                  # Scalar field mass in eV
+        self.H0   = 1.42919e-33             # Hubble constant in eV
+        self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
-        # Curvature
-        self.Omk_0  = 0.001     
+        # CMaDE Constants
+        # Turn off CMaDE with kc = Q = 0
+        self.kc = 0.
+        self.Q  = 0.
+
+        # Initial Conditions
+        # x1: Kinetic, x2: Potential
+        self.OmDM_0 = 0.2501       #     Om Omega_DM
+        self.Omz_0  = 5.50234e-5   # x3:  z Radiation 
+        self.Omnu_0 = 3.74248e-5   # x4: nu Neutrinos 
+        self.Omb_0  = 0.0498998    # x5:  b Baryons
+        self.Omk_0  = 0.001        # Curvature
+
+        # x6: CMaDE Variable -- Friedmann Restriction  
+        self.OmDE_0 = 1. - self.Omk_0 - self.OmDM_0 - self.Omz_0 - self.Omnu_0 - self.Omb_0 
+
+        # Th Theta -- From Eq. 2.14 Ureña-Gonzalez
+        t0 = 6.60996e32 # Age of the Universe
+        self.Th_0   = 2.* self.mass* t0
+
+        # x1 -> x, x2 -> y: Initial Values from Theta
+        self.x1_0 = np.sqrt(self.OmDM_0)* np.sin(self.Th_0/2.)
+        self.x2_0 = np.sqrt(self.OmDM_0)* np.cos(self.Th_0/2.)
 
         # Scale factor range
         self.NP = 100000
@@ -30,6 +60,9 @@ class DarkM:
         self.Nf = np.log(1.e-6)
         self.d  = (self.Nf - self.Ni)/ self.NP
         self.t  = [self.Ni + self.d* i for i in np.arange(self.NP)]
+
+        # Plots saved at...
+        self.directory = '../../../Report/mastersthesis/plots/SFDM-xyV/'
 
     # Runge-Kutta 4 initialices the method ABM4
     def rk4(self, func, y_0, t):
@@ -58,14 +91,14 @@ class DarkM:
         k_2 = func(t[1], y[1])
         k_3 = func(t[0], y[0])
 
-        print("{:<20}\t{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN", "OMEGA_SFDM"))
+        print("{:<20}\t{:<20}".format("E-FOLDING", "FRIEDMANN"))
 
         for i in range(3, self.NP - 1):
 
-            # Prints N, F, and Omega SFDM
-            if i % 50000 == 0:
+            # Prints N and F
+            if i % (self.NP/10) == 0:
                 k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
-                print("{:<10}\t{:<10}\t{:<10}".format(t[i], np.sum(np.square(np.array(y[i,:-1]))) + k_Term, np.sum(np.square(np.array(y[i,:2])))))
+                print("{:<10}\t{:<10}".format(t[i], y[i,0]**2 + y[i,1]**2 + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term))
 
             h   = self.d
             k_4 = k_3
@@ -82,13 +115,14 @@ class DarkM:
 
     # Initial conditions from today comsological observations
     def solver(self):
-        y0 = np.array([np.sqrt(0.22994),  # x: x0 Kinetic energy
-                       np.sqrt(0.),       # u: x2 Potential energy
-                       np.sqrt(0.00004),  # z: x4 Radiation
-                       np.sqrt(0.00002),  # n: x5 Neutrinos
-                       np.sqrt(0.04),     # b: x6 Baryons
-                       np.sqrt(0.729),    # l: x7 Lambda
-                       1.e3])             # s: x8 Spurious Variable
+        y0 = np.array([self.x1_0,       
+                       self.x2_0,           
+                       np.sqrt(self.Omz_0),  
+                       np.sqrt(self.Omnu_0),  
+                       np.sqrt(self.Omb_0),     
+                       np.sqrt(self.OmDE_0),     
+                       #self.y1_0])
+                       1.e3])
 
         # Solve the SoE with the ABM4 or RK4 algorithms
         y_result = self.ABM4(self.RHS, y0, self.t)
@@ -98,98 +132,125 @@ class DarkM:
 
     # System of Equations
     def RHS(self, t, y):
-        x0, x2, x4, x5, x6, x7, x8 = y
+        x1, x2, x3, x4, x5, x6, x7 = y
 
-        CTer = 4./3.
-        kc   = 0.42
-        Q    = -0.43
+        # Parameters
+        CTer = 4/3.
+        kc   = self.kc
+        Q    = self.Q
+
+        # CMaDE Factors
+        CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
+        gamm = CMF* kc* x6**3
 
         # Contributions 
-        k_Term = (2/3.)* self.Omk_0* (x8/self.y1_0)**2* np.exp(-2* t)
-        Pe     = 2.* x0**2 + CTer* x4**2 + CTer* x5**2 + x6**2 + k_Term + (kc - 1.)* (Q/np.pi)* np.sqrt(2/3.)* x7**3* np.exp(-t)
+        k_Term     = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
+        CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**3
 
-        return np.array([-3.* x0 - x8* x2 + 1.5* x0* Pe - (Q* kc/np.pi)* np.sqrt(3/2.)* (x7**3/x0)* np.exp(-t),
-                         x0* x8 + 1.5* x2* Pe,
+        # Hubble Parameter Evolution 
+        Pe = 2.* x1**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + CMaDE_Term
+
+        return np.array([(-3. + 1.5* Pe)* x1 + x2* x7/2. - gamm/x1,
+                         1.5* x2* Pe - x1* x7/2.,
+                         1.5* x3* (Pe - CTer),
                          1.5* x4* (Pe - CTer),
-                         1.5* x5* (Pe - CTer),
-                         1.5* x6* (Pe - 1.),
-                         1.5* x7* Pe + (Q/np.pi)* np.sqrt(3/2.)* x7**2* np.exp(-t),
-                         -1.5* x8**(-2)])
-                         #1.5* Pe* x8])
+                         1.5* x5* (Pe - 1.),
+                         1.5* x6* Pe + CMF* x6**2,
+                         #1.5* x7* Pe])
+                         -1.5* x7**(-2)])
 
     # Plotting Function
     def plot(self):
         #En este arreglo se guardan los resultados de la funcion solver. Las variables se acomodan como en la funcion RHS.
-        z0, z2, z4, z5, z6, z7, z8 = self.solver().T
+        z1, z2, z3, z4, z5, z6, z7 = self.solver().T
         #x, u, z, nu, l, s, b = self.solver().T
 
-        fig3 = plt.figure(figsize=(9,10))
-        ax3  = fig3.add_subplot(111)
+        fig2 = plt.figure(figsize=(10,6)) # Define una nueva ventana
+        ax2  = fig2.add_subplot(111)      # La grafica correspondiente a la nueva ventana
 
-        fig2 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax2  = fig2.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig3 = plt.figure(figsize=(10,6)) 
+        ax3  = fig3.add_subplot(111)       
 
-        fig8 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax8  = fig8.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig4 = plt.figure(figsize=(10,6)) 
+        ax4  = fig4.add_subplot(111)
 
-        fig9 = plt.figure(figsize=(9,10)) #Define una nueva ventana.
-        ax9  = fig9.add_subplot(111)       #La grafica correspondiente a la nueva ventana.
+        fig5 = plt.figure(figsize=(10,6)) 
+        ax5  = fig5.add_subplot(111)       
+
+        fig8 = plt.figure(figsize=(10,6)) 
+        ax8  = fig8.add_subplot(111)      
+
+        fig9 = plt.figure(figsize=(10,6)) 
+        ax9  = fig9.add_subplot(111)      
 
         i = 0
-        tiempo = w0 = w2 = w4 = w5 = w6 = w7 = w8 = np.array([])
+        tiempo = w1 = w2 = w3 = w4 = w5 = w6 = w7 = np.array([])
 
-        for t, aux0, aux2, aux4, aux5, aux6, aux7, aux8  in zip(self.t, z0, z2, z4, z5, z6, z7, z8):
+        for t, aux1, aux2, aux3, aux4, aux5, aux6, aux7  in zip(self.t, z1, z2, z3, z4, z5, z6, z7):
             #Resolucion de las graficas
             if i % 200 == 0:
                tiempo = np.append(tiempo, np.exp(t))  # Scale factor from e-folding N
-               w0 = np.append(w0, aux0)
+               w1 = np.append(w1, aux1)
                w2 = np.append(w2, aux2)
+               w3 = np.append(w3, aux3)
                w4 = np.append(w4, aux4)
                w5 = np.append(w5, aux5)
                w6 = np.append(w6, aux6)
                w7 = np.append(w7, aux7)
-               w8 = np.append(w8, aux8)
             i += 1
 
         # Saving Results
-        data = np.column_stack((tiempo, w0, w2, w4, w5, w6, w7, w8))
+        data = np.column_stack((tiempo, w1, w2, w3, w4, w5, w6, w7))
         np.savetxt("data.dat", data)
 
         # Background Scalar Field
-        ax2.semilogx(tiempo, np.sqrt(6.)* w2/w8, 'black', label=r"$\kappa\Phi_0$")
-        ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20)
-        ax2.set_xlabel(r'$a$', fontsize=15)
-        ax2.legend(loc = 'best', fontsize = 'xx-large')
-        fig2.savefig('Phi0.pdf')
+        ax2.semilogx(tiempo, -2* np.sqrt(6.)* w2/w7, 'black')
+        ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20, fontweight='bold')
+        ax2.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        ax2.tick_params(axis='both', which='major', labelsize=18)
+        #ax2.legend(loc = 'best', fontsize = 'xx-large')
+        fig2.savefig(self.directory + "Phi0.pdf")
         #plt.show()
 
-        #Dark Matter
-        ax3.semilogx(tiempo, w0**2 + w2**2, 'black', label=r"$\Omega_{SFDM}$")
-        ax3.semilogx(tiempo, w4**2, 'blue', label=r"$\Omega_{\gamma}$") #radiacion
-        ax3.semilogx(tiempo, w5**2, 'orange', label=r"$\Omega_{v}$") #neutrinos
-        ax3.semilogx(tiempo, w6**2, 'red', label=r"$\Omega_b$")  #bariones
-        ax3.semilogx(tiempo, w7**2, 'green', label=r"$\Omega_{\Lambda}$")  #constante cosmologica
-        ax3.set_ylabel(r'$\Omega(a)$', fontsize=20) #original
-        ax3.set_xlabel(r'$a$', fontsize=15)
-        ax3.legend(loc = 'best', fontsize = 'xx-large')
-        fig3.savefig('Omegas.pdf')
-        #plt.show()        
+        # Parameter Densities
+        ax3.semilogx(tiempo, w1**2 + w2**2, 'black', label=r"$\Omega_{\rm SFDM}$") # Dark Matter
+        ax3.semilogx(tiempo, w3**2, 'blue', label=r"$\Omega_{\gamma}$")            # Radiation
+        ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{\nu}$")             # Neutrinos
+        ax3.semilogx(tiempo, w5**2, 'red', label=r"$\Omega_b$")                    # Baryons
+        ax3.semilogx(tiempo, w6**2, 'green', label=r"$\Omega_{\Lambda}$")          # Lambda
+        ax3.set_ylabel(r'$\Omega(a)$', fontsize=20, fontweight='bold')                         
+        ax3.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        ax3.tick_params(axis='both', which='major', labelsize=18)
+        ax3.legend(loc = 'upper left', fontsize = '12')
+        fig3.savefig(self.directory + 'Omegas.pdf')
+        #plt.show()       
+
+        # Effective EoS Parameter wphi
+        ax4.semilogx(tiempo, (w1**2 - w2**2)/(w1**2 + w2**2), 'black')
+        ax4.set_ylabel(r'$w_{\phi}(a)$', fontsize=20, fontweight='bold')
+        ax4.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        #ax4.legend(loc = 'best', fontsize = 'xx-large')
+        ax4.tick_params(axis='both', which='major', labelsize=18)
+        fig4.savefig(self.directory + 'wphi.pdf')
+        #plt.show()
 
         # Friedmann Restriction
-        k_Term = self.Omk_0* (w8/self.y1_0)**2* np.exp(-2* np.log(tiempo))
-        ax9.semilogx(tiempo, w0**2 + w2**2 + w4**2 + w5**2 + w6**2 + w7**2 + k_Term, 'black', label=r"$F$")
+        k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
+        ax9.semilogx(tiempo, w1**2 + w2**2 + w3**2 + w4**2 + w5**2 + w6**2 + k_Term, 'black')
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
-        ax9.set_xlabel(r'$a$', fontsize=15)
-        ax9.legend(loc = 'best', fontsize = 'xx-large')
-        fig9.savefig('F.pdf')
+        ax9.set_xlabel(r'$a$', fontsize=20)
+        ax9.tick_params(axis='both', which='major', labelsize=18)
+        #ax9.legend(loc = 'best', fontsize = 'xx-large')
+        fig9.savefig(self.directory + 'F.pdf')
         #plt.show()
 
-        # Spurious Variable
-        ax8.semilogx(tiempo, w8, 'black', label=r"$s$")
-        ax8.set_ylabel(r'$s$', fontsize=20)
-        ax8.set_xlabel(r'$a$', fontsize=15)
-        ax8.legend(loc = 'best', fontsize = 'xx-large')
-        fig8.savefig('s.pdf')
+        # y1: Inverse Hubble Parameter
+        ax8.semilogx(tiempo, w7, 'black', label=r"$y1$")
+        ax8.set_ylabel(r'$y1(a)$', fontsize=20, fontweight='bold')
+        ax8.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
+        ax8.tick_params(axis='both', which='major', labelsize=18)
+        #ax8.legend(loc = 'best', fontsize = 'xx-large')
+        fig8.savefig(self.directory + 'y1.pdf')
         #plt.show()
 
 # Runs only if the script is self contained

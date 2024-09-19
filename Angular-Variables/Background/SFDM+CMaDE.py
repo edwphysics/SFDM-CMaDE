@@ -238,7 +238,7 @@ class DarkM:
         k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
         ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + k_Term, 'black')
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
-        ax9.set_xlabel(r'$a$', fontsize=15)
+        ax9.set_xlabel(r'$a$', fontsize=20)
         ax9.tick_params(axis='both', which='major', labelsize=18)
         #ax9.legend(loc = 'best', fontsize = 'xx-large')
         fig9.savefig(self.directory + 'F.pdf')
