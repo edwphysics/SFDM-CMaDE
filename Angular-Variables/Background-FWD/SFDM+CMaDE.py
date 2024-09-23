@@ -29,6 +29,9 @@ class DarkM:
         self.mass = 1.e-22                  # Scalar field mass in eV
         self.H0   = 1.42919e-33             # Hubble constant in eV
 
+        # Cut-off Parameter
+        self.theta_star = 1.e2
+
         # x7: y1 Mass to Hubble Ratio
         self.y1_0 = 2.* self.mass/self.H0
 
@@ -49,30 +52,34 @@ class DarkM:
         self.OmR_0  = self.Omnu_0 + self.Omz_0
         self.OmM_0  = self.OmDM_0 + self.Omb_0
 
-        # Initial Conditions a=1e-6
-        self.a_i    = 1.e-6
+        # Initial Conditions a_i
+        self.a_i    = 1.e-14
         self.scH    = np.sqrt(self.OmR_0* self.a_i**(-4) + self.OmM_0* self.a_i**(-3)) # Adimensional Hubble Parameter at RD
-        self.OmDM_i = (self.OmDM_0/self.scH**2)* self.a_i**(-3)
+        #self.OmDM_i = (self.OmDM_0/self.scH**2)* self.a_i**(-3) 
         self.Omb_i  = (self.Omb_0/self.scH**2)* self.a_i**(-3)
         self.Omz_i  = (self.Omz_0/self.scH**2)* self.a_i**(-4)
         self.Omnu_i = (self.Omnu_0/self.scH**2)* self.a_i**(-4)
         self.Omk_i  = (self.Omk_0/self.scH**2)* self.a_i**(-2)
-
-        # x6: CMaDE Variable -- Friedmann Restriction  
-        self.OmDE_0 = 1. - self.Omk_0 - self.OmDM_0 - self.Omz_0 - self.Omnu_0 - self.Omb_0 
-        self.OmDE_i = self.OmDE_0/self.scH**2
 
         # x1: Th Theta -- From Eq. 2.14 & 2.16 Ureña-Gonzalez
         t0 = 6.60996e32 # Age of the Universe in eV
         self.Th_0   = 2.* self.mass* t0
         self.Th_i   = (1/5.)* (self.y1_0/np.sqrt(self.OmR_0))* self.a_i**2
 
+        # x2: OmegaDM_i from OmegaDM_0
+        self.OmDM_i = self.a_i* (self.OmDM_0/self.OmR_0)* (4.* self.Th_i**2/np.pi**2)**(3/4)* ((9. + np.pi**2/4.)/(9. + self.Th_i**2))**(3/4)
+
+        # x6: CMaDE Variable -- Friedmann Restriction  
+        self.OmDE_0 = 1. - self.Omk_0 - self.OmDM_0 - self.Omz_0 - self.Omnu_0 - self.Omb_0 
+        self.OmDE_i = 1. - self.Omk_i - self.OmDM_i - self.Omz_i - self.Omnu_i - self.Omb_i
+        #self.OmDE_i = self.OmDE_0/self.scH**2
+
         # x7: SF Mass to Hubble Parameter Ratio at a_i
         # From Eq. 2.9a Ureña-Gonzalez
         self.y1_i   = 5* self.Th_i
 
         # Scale factor range
-        self.NP = 1000000
+        self.NP = 100000
         self.Ni = np.log(self.a_i)
         self.Nf = np.log(self.a_0)
         self.d  = (self.Nf - self.Ni)/ self.NP
@@ -99,6 +106,13 @@ class DarkM:
             file.write(f"Omeganu_0: \t{self.Omnu_0}\n")
             file.write(f"Omegak_0: \t{self.Omk_0}\n")
             file.write(f"OmegaDE_0: \t{self.OmDE_0}\n")
+
+    # Cut-off Trigonometric Functions
+    def sin_star(self, theta):
+        return (1/2.)* (1. - np.tanh(theta**2 - self.theta_star**2))* np.sin(theta)
+
+    def cos_star(self, theta):
+        return (1/2.)* (1. - np.tanh(theta**2 - self.theta_star**2))* np.cos(theta)
 
     # Runge-Kutta 4 initialices the method ABM4
     def rk4(self, func, y_0, t):
@@ -183,10 +197,10 @@ class DarkM:
         CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**3
 
         # Hubble Parameter Evolution 
-        Pe = 2.* x2* np.sin(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + CMaDE_Term
+        Pe = 2.* x2* self.sin_star(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + CMaDE_Term
 
-        return np.array([-3.* np.sin(x1) + x7 - 2.* gamm/ np.tan(x1/2.),
-                         3.* (Pe - 1. + np.cos(x1))* x2 - 2* gamm* x2,
+        return np.array([-3.* self.sin_star(x1) + x7 - 2.* gamm* self.cos_star(x1/2.)/ np.sin(x1/2.),
+                         3.* (Pe - 1. + self.cos_star(x1))* x2 - 2* gamm* x2,
                          1.5* x3* (Pe - CTer),
                          1.5* x4* (Pe - CTer),
                          1.5* x5* (Pe - 1.),
@@ -238,7 +252,7 @@ class DarkM:
         np.savetxt("data.dat", data)
 
         # Background Scalar Field
-        ax2.semilogx(tiempo, -2* np.sqrt(6.)* np.sqrt(w2)* np.cos(w1/2.)/w7, 'black')
+        ax2.semilogx(tiempo, -2* np.sqrt(6.)* np.sqrt(w2)* self.cos_star(w1/2.)/w7, 'black')
         ax2.set_ylabel(r'$\kappa\Phi_0(a)$', fontsize=20, fontweight='bold')
         ax2.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
         ax2.tick_params(axis='both', which='major', labelsize=18)
@@ -260,7 +274,7 @@ class DarkM:
         #plt.show()       
 
         # Effective EoS Parameter wphi
-        ax4.semilogx(tiempo, -np.cos(w1), 'black')
+        ax4.semilogx(tiempo, -self.cos_star(w1), 'black')
         ax4.set_ylabel(r'$w_{\phi}(a)$', fontsize=20, fontweight='bold')
         ax4.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
         #ax4.legend(loc = 'best', fontsize = 'xx-large')
