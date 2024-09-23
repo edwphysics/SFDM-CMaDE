@@ -75,6 +75,7 @@ class DarkM:
         #self.OmDE_i = self.OmDE_0/self.scH**2
 
         # x7: SF Mass to Hubble Parameter Ratio at a_i
+        #self.y1_i   = self.y1_0/ self.scH
         # From Eq. 2.9a Ureña-Gonzalez
         self.y1_i   = 5* self.Th_i
 
@@ -91,6 +92,9 @@ class DarkM:
         # Save Initial Conditions
         with open(self.directory + "IC.txt", "w") as file:
         # Write the constants to the file
+            file.write(f"N: \t\t{self.NP}\n\n")
+            file.write(f"CMaDE Q: \t{self.Q}\n")
+            file.write(f"CMaDE kc: \t{self.kc}\n\n")
             file.write(f"Theta_i: \t{self.Th_i}\n")
             file.write(f"OmegaDM_i: \t{self.OmDM_i}\n")
             file.write(f"Omegab_i: \t{self.Omb_i}\n")
@@ -98,6 +102,7 @@ class DarkM:
             file.write(f"Omeganu_i: \t{self.Omnu_i}\n")
             file.write(f"Omegak_i: \t{self.Omk_i}\n")
             file.write(f"OmegaDE_i: \t{self.OmDE_i}\n")
+            file.write(f"y1_i: \t\t{self.y1_i}\n")
             file.write(f"\n")
             file.write(f"Theta_0: \t{self.Th_0}\n")
             file.write(f"OmegaDM_0: \t{self.OmDM_0}\n")
@@ -106,6 +111,7 @@ class DarkM:
             file.write(f"Omeganu_0: \t{self.Omnu_0}\n")
             file.write(f"Omegak_0: \t{self.Omk_0}\n")
             file.write(f"OmegaDE_0: \t{self.OmDE_0}\n")
+            file.write(f"y1_0: \t\t{self.y1_0}\n")
 
     # Cut-off Trigonometric Functions
     def sin_star(self, theta):
@@ -167,10 +173,10 @@ class DarkM:
     def solver(self):
         y0 = np.array([self.Th_i,       
                        self.OmDM_i,           
-                       np.sqrt(self.Omz_i),  
+                       np.sqrt(self.Omz_i),
                        np.sqrt(self.Omnu_i),  
-                       np.sqrt(self.Omb_i),     
-                       np.sqrt(self.OmDE_i),     
+                       np.sqrt(self.Omb_i),
+                       np.sqrt(self.OmDE_i),
                        self.y1_i])
 
         # Solve the SoE with the ABM4 or RK4 algorithms
