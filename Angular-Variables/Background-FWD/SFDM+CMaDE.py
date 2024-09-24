@@ -28,12 +28,10 @@ class DarkM:
         # Scalar Field Constants
         self.mass = 1.e-22                  # Scalar field mass in eV
         self.H0   = 1.42919e-33             # Hubble constant in eV
+        self.y1_0 = 2.* self.mass/self.H0   # x7: y1 Mass to Hubble Ratio
 
         # Cut-off Parameter
         self.theta_star = 1.e2
-
-        # x7: y1 Mass to Hubble Ratio
-        self.y1_0 = 2.* self.mass/self.H0
 
         # CMaDE Constants
         # Turn off CMaDE with kc = Q = 0
@@ -55,7 +53,7 @@ class DarkM:
         # Initial Conditions a_i
         self.a_i    = 1.e-14
         self.scH    = np.sqrt(self.OmR_0* self.a_i**(-4) + self.OmM_0* self.a_i**(-3)) # Adimensional Hubble Parameter at RD
-        #self.OmDM_i = (self.OmDM_0/self.scH**2)* self.a_i**(-3) 
+        self.OmDM_i = (self.OmDM_0/self.scH**2)* self.a_i**(-3) 
         self.Omb_i  = (self.Omb_0/self.scH**2)* self.a_i**(-3)
         self.Omz_i  = (self.Omz_0/self.scH**2)* self.a_i**(-4)
         self.Omnu_i = (self.Omnu_0/self.scH**2)* self.a_i**(-4)
@@ -67,12 +65,12 @@ class DarkM:
         self.Th_i   = (1/5.)* (self.y1_0/np.sqrt(self.OmR_0))* self.a_i**2
 
         # x2: OmegaDM_i from OmegaDM_0
-        self.OmDM_i = self.a_i* (self.OmDM_0/self.OmR_0)* (4.* self.Th_i**2/np.pi**2)**(3/4)* ((9. + np.pi**2/4.)/(9. + self.Th_i**2))**(3/4)
+        #self.OmDM_i = self.a_i* (self.OmDM_0/self.OmR_0)* (4.* self.Th_i**2/np.pi**2)**(3/4)* ((9. + np.pi**2/4.)/(9. + self.Th_i**2))**(3/4)
 
         # x6: CMaDE Variable -- Friedmann Restriction  
         self.OmDE_0 = 1. - self.Omk_0 - self.OmDM_0 - self.Omz_0 - self.Omnu_0 - self.Omb_0 
-        self.OmDE_i = 1. - self.Omk_i - self.OmDM_i - self.Omz_i - self.Omnu_i - self.Omb_i
-        #self.OmDE_i = self.OmDE_0/self.scH**2
+        #self.OmDE_i = 1. - self.Omk_i - self.OmDM_i - self.Omz_i - self.Omnu_i - self.Omb_i
+        self.OmDE_i = self.OmDE_0/self.scH**2
 
         # x7: SF Mass to Hubble Parameter Ratio at a_i
         #self.y1_i   = self.y1_0/ self.scH
@@ -154,7 +152,7 @@ class DarkM:
             # Prints N and F
             if i % (self.NP/10) == 0:
                 k_Term = self.Omk_0* (y[i,6]/self.y1_0)**2* np.exp(-2* t[i]) 
-                print("{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2]**2 + y[i,3]**2 + y[i,4]**2 + y[i,5]**2 + k_Term))
+                print("{:<10}\t{:<10}".format(t[i], y[i,1] + y[i,2] + y[i,3] + y[i,4] + y[i,5] + k_Term))
 
             h   = self.d
             k_4 = k_3
@@ -173,10 +171,10 @@ class DarkM:
     def solver(self):
         y0 = np.array([self.Th_i,       
                        self.OmDM_i,           
-                       np.sqrt(self.Omz_i),
-                       np.sqrt(self.Omnu_i),  
-                       np.sqrt(self.Omb_i),
-                       np.sqrt(self.OmDE_i),
+                       self.Omz_i,
+                       self.Omnu_i,
+                       self.Omb_i,
+                       self.OmDE_i,
                        self.y1_i])
 
         # Solve the SoE with the ABM4 or RK4 algorithms
@@ -196,21 +194,21 @@ class DarkM:
 
         # CMaDE Factors
         CMF  = (Q/np.pi)* np.sqrt(3/2.)* np.exp(-t)
-        gamm = CMF* (kc/x2)* x6**3
+        gamm = CMF* (kc/x2)* x6**(3/2)
 
         # Contributions 
         k_Term     = (2/3.)* self.Omk_0* (x7/self.y1_0)**2* np.exp(-2* t)
-        CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**3
+        CMaDE_Term = (kc - 1.)* (2/3.)* CMF* x6**(3/2)
 
         # Hubble Parameter Evolution 
-        Pe = 2.* x2* self.sin_star(x1/2.)**2 + CTer* x3**2 + CTer* x4**2 + x5**2 + k_Term + CMaDE_Term
+        Pe = 2.* x2* self.sin_star(x1/2.)**2 + CTer* (x3 + x4) + x5 + k_Term + CMaDE_Term
 
         return np.array([-3.* self.sin_star(x1) + x7 - 2.* gamm* self.cos_star(x1/2.)/ np.sin(x1/2.),
                          3.* (Pe - 1. + self.cos_star(x1))* x2 - 2* gamm* x2,
-                         1.5* x3* (Pe - CTer),
-                         1.5* x4* (Pe - CTer),
-                         1.5* x5* (Pe - 1.),
-                         1.5* x6* Pe + CMF* x6**2,
+                         3.* x3* (Pe - CTer),
+                         3.* x4* (Pe - CTer),
+                         3.* x5* (Pe - 1.),
+                         3.* x6* Pe + 2.* CMF* x6**(3/2),
                          1.5* x7* Pe])
 
     # Plotting Function
@@ -268,10 +266,10 @@ class DarkM:
 
         # Parameter Densities
         ax3.semilogx(tiempo, w2, 'black', label=r"$\Omega_{\rm SFDM}$")     # Dark Matter
-        ax3.semilogx(tiempo, w3**2, 'blue', label=r"$\Omega_{\gamma}$")     # Radiation
-        ax3.semilogx(tiempo, w4**2, 'orange', label=r"$\Omega_{\nu}$")      # Neutrinos
-        ax3.semilogx(tiempo, w5**2, 'red', label=r"$\Omega_b$")             # Baryons
-        ax3.semilogx(tiempo, w6**2, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
+        ax3.semilogx(tiempo, w3, 'blue', label=r"$\Omega_{\gamma}$")     # Radiation
+        ax3.semilogx(tiempo, w4, 'orange', label=r"$\Omega_{\nu}$")      # Neutrinos
+        ax3.semilogx(tiempo, w5, 'red', label=r"$\Omega_b$")             # Baryons
+        ax3.semilogx(tiempo, w6, 'green', label=r"$\Omega_{\Lambda}$")   # Lambda
         ax3.set_ylabel(r'$\Omega(a)$', fontsize=20, fontweight='bold')                         
         ax3.set_xlabel(r'$a$', fontsize=20, fontweight='bold')
         ax3.tick_params(axis='both', which='major', labelsize=18)
@@ -297,7 +295,7 @@ class DarkM:
 
         # Friedmann Restriction
         k_Term = self.Omk_0* (w7/self.y1_0)**2* np.exp(-2* np.log(tiempo))
-        ax9.semilogx(tiempo, w2 + w3**2 + w4**2 + w5**2 + w6**2 + k_Term, 'black')
+        ax9.semilogx(tiempo, w2 + w3 + w4 + w5 + w6 + k_Term, 'black')
         ax9.set_ylabel(r'$F(a)$', fontsize=20)
         ax9.set_xlabel(r'$a$', fontsize=20)
         ax9.tick_params(axis='both', which='major', labelsize=18)
